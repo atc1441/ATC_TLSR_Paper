@@ -1,0 +1,78 @@
+By @Atc1441 ( https://ATCnetz.de ) 
+
+Hanshow Stellar-MN@ E31H
+
+Electronic Shelf Label
+
+M = 2.13"
+N = NFC
+@ = RGB_LED
+H = High-resolution
+
+
+550mAh Battery, 2xCR2450
+
+
+EPD:
+2.13" Black White HINK-E0213A31
+Pixel: 250*122
+SPI
+EPD_BS = Grounded = 4Line SPI
+
+NFC:
+FM11NC08
+i2c version
+
+
+TLSR8359 Pinout
+32Pins
+2.4GHz RF = 2402-2480MHz
+512KB Flash
+64KB RAM
+
+Pin|Name|	Function
+-----------------------------------
+1	PD4		EPD_RESET
+2	PD7		EPD_DC
+3	PA0		RXD
+4	PA1		EPD_BUSY
+5	PA7		LED Blue + SWS_Debug
+6	PB1		TXD
+7	VSS		---
+8	VDD		---
+		
+9	VDD		---
+10	VDCDC	---
+11	VDCDC	---
+12	VDD		---
+13	VDD		---
+14	PB4		EPD_CS
+15	PB5		EPD_CLK
+16	PB6		EPD_MOSI
+	
+17	PB7		Not-Used
+18	VDD		---
+19	VDD		---
+20	PC0		NFC_SDA
+21	PC1		NFC_SCL
+22	PC4		NFC_IRQ
+23	PC5		EPD_ENABLE via Mosfet
+24	PC6		NFC_CS
+	
+25	RESET	---
+26	VANT	---
+27	ANT		---
+28	VDD		---
+29	X24mhz	---
+30	X24mhz	---
+31	PD2		LED Red
+32	PD3		LED Green
+
+
+
+
+
+
+
+
+
