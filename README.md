@@ -5,6 +5,10 @@ Custom BLE firmware for Hanshow E-Paper Shelf Labels / Price Tags using the TLSR
 
 As BLE can be enabled on the Telink TLSR8359 so i decided to make a custom firmware instead of reversing the stock firmware and its 2.4Ghz RF Protocol
 
+This repo is made together with this explanation video:(click on it)
+
+[![YoutubeVideo](https://img.youtube.com/vi/ANHz7EgWx7k/0.jpg)](https://www.youtube.com/watch?v=ANHz7EgWx7k)
+
 
 WebSerial Firmware flasher Tool: 
 https://atc1441.github.io/ATC_TLSR_Paper_UART_Flasher.html
