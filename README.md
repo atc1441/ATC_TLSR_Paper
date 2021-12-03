@@ -13,11 +13,15 @@ https://atc1441.github.io/ATC_TLSR_Paper_UART_Flasher.html
 Python needs to be installed
 ##### Windows:
 To compile under windows navigate with a command prompt to the "Firmware" folder
+
 Enter "makeit.exe" and wait till the Compiling is done.
+
 
 ##### Linux:
 Navigate with a Terminal into the "Firmware" Folder
-Enter "chmod 777 -R ./" 
+
+Enter "chmod 777 -R ./"
+
 Enter "make" and wait till the Compiling is done.
 
 #### Flashing:
