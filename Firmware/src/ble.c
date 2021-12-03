@@ -80,7 +80,7 @@ _attribute_ram_code_ void user_set_rf_power (uint8_t e, uint8_t *p, int n)
 void ble_connect_callback(uint8_t e, uint8_t *p, int n)
 {
 	ble_connected = 1;
-	bls_l2cap_requestConnParamUpdate(80, 80, 0, 1000);  //1S
+	bls_l2cap_requestConnParamUpdate(15, 15, 0, 1000);  //1S
 	printf("BLE connected\r\n");
 }
 

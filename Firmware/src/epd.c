@@ -226,7 +226,15 @@ void EPD_Display(unsigned char *image, int size)
 void epd_display(){
     int i;
     for(i=0;i<epd_buffer_size;i++){
-        epd_buffer[i]=0xaa;
+        epd_buffer[i]=0xfe;
+    }
+	EPD_Display(epd_buffer, epd_buffer_size);
+}
+
+void epd_display_char(uint8_t data){
+    int i;
+    for(i=0;i<epd_buffer_size;i++){
+        epd_buffer[i]=data;
     }
 	EPD_Display(epd_buffer, epd_buffer_size);
 }

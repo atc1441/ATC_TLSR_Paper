@@ -7,7 +7,6 @@
 
 #include "flash.h"
 
-extern void doEPD();
 extern settings_struct settings;
 
 #define testPin GPIO_PD3
@@ -29,7 +28,7 @@ void cmd_parser(void * p){
 	}else if(inData == 0x0C){
 		settings.advertising_temp_C_or_F = false;//Advertising Temp in C
 	}else if(inData == 0xB1){
-		epd_display();
+		epd_display_char(req->dat[1]);
 	}else if(inData == 0xB0){
 		settings.show_batt_enabled = false;//Disable battery on LCD
 	}else if(inData == 0xA0){
