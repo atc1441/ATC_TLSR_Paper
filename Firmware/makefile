@@ -3,9 +3,11 @@ TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258
 ifeq ($(OS), Windows_NT)
 	TC32_COMPILER_PATH := tc32_windows\\bin\\
 	WINDOWS_PREFIX :=$(TC32_COMPILER_PATH)
+	LINUX_CHMOD := 
 else
 	TC32_COMPILER_PATH := ./tc32_linux/bin/
 	WINDOWS_PREFIX :=
+	LINUX_CHMOD := chmod 777 -R ./
 endif
 
 LIBS :=  -llt_8258
@@ -77,7 +79,7 @@ BIN_FILE := $(OUT_PATH)/../$(PROJECT_NAME).bin
 ELF_FILE := $(OUT_PATH)/$(PROJECT_NAME).elf
 
 # All Target
-all: pre-build main-build
+all: chmod_all pre-build main-build
 # Main-build Target
 main-build: $(ELF_FILE) secondary-outputs
 
@@ -97,7 +99,7 @@ $(LST_FILE): $(ELF_FILE)
 $(BIN_FILE): $(ELF_FILE)
 	@echo 'Create Flash image (binary format)'
 	@$(TC32_COMPILER_PATH)tc32-elf-objcopy -v -O binary $(ELF_FILE)  $(BIN_FILE)
-	@python $(TEL_PATH)/make/tl_firmware_tools.py add_crc $(BIN_FILE)
+	@python3 $(TEL_PATH)/make/tl_firmware_tools.py add_crc $(BIN_FILE)
 	@echo 'Finished building: $@'
 	@echo ' '
 
@@ -114,6 +116,10 @@ clean:
 pre-build:
 	$(WINDOWS_PREFIX)mkdir -p $(foreach s,$(OUT_DIR),$(OUT_PATH)$(s))
 	-@echo ' '
+
+chmod_all:
+	-@$(LINUX_CHMOD)
+	-@echo 'chmod_all'
 
 secondary-outputs: $(BIN_FILE) $(LST_FILE) sizedummy
 
