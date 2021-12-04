@@ -19,6 +19,33 @@ void init_led()
     gpio_write(LED_GREEN, 1);
 }
 
+void set_led_color(uint8_t color)
+{
+    switch (color)
+    {
+    case 1:
+        gpio_write(LED_BLUE, 1);
+        gpio_write(LED_RED, 0);
+        gpio_write(LED_GREEN, 1);
+        break;
+    case 2:
+        gpio_write(LED_BLUE, 1);
+        gpio_write(LED_RED, 1);
+        gpio_write(LED_GREEN, 0);
+        break;
+    case 3:
+        gpio_write(LED_BLUE, 0);
+        gpio_write(LED_RED, 1);
+        gpio_write(LED_GREEN, 1);
+        break;
+    default:
+        gpio_write(LED_BLUE, 1);
+        gpio_write(LED_RED, 1);
+        gpio_write(LED_GREEN, 1);
+        break;
+    }
+}
+
 void deinit_led()
 {
     // LED_BLUE();

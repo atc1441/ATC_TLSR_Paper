@@ -10,5 +10,7 @@ void init_epd();
 void deinit_epd(void);
 void EPD_Display(unsigned char *image, int size);
 void epd_display();
+void epd_set_sleep();
+uint8_t epd_state_handler();
 void epd_display_char(uint8_t data);
 void epd_clear();
