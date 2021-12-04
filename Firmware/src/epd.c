@@ -7,11 +7,17 @@
 
 #include "battery.h"
 
+#include "OneBitDisplay.h"
+extern const uint8_t ucMirror[];
+#include "Roboto_Black_80.h"
+
 #define epd_height 150
 #define epd_width 250
 #define epd_buffer_size (epd_height*epd_width)/8
 
 RAM uint8_t epd_buffer[epd_buffer_size];
+RAM uint8_t epd_temp[epd_buffer_size]; // for OneBitDisplay to draw into
+RAM OBDISP obd; // virtual display structure
 
 #define     EPD_POWER_ON()     gpio_write(EPD_ENABLE,0)
 
@@ -223,11 +229,24 @@ void EPD_Display(unsigned char *image, int size)
     deinit_epd();
 }
 
+void FixBuffer(uint8_t *pSrc, uint8_t *pDst)
+{
+	int x, y;
+	uint8_t *s, *d;
+	for (y=0; y<16; y++) { // byte rows
+		d = &pDst[y];
+		s = &pSrc[y * 250];
+		for (x=0; x<250; x++) {
+			d[x*16] = ~ucMirror[s[249-x]]; // invert and flip
+		} // for x
+	} // for y
+}
 void epd_display(){
-    int i;
-    for(i=0;i<epd_buffer_size;i++){
-        epd_buffer[i]=0xaa;
-    }
+	obdCreateVirtualDisplay(&obd, 250, 122, epd_temp);
+	obdFill(&obd, 0, 0); // fill with white
+	obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 60, (char *)"Roboto", 1);
+	obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"12:31pm", 1);
+	FixBuffer(epd_temp, epd_buffer);
 	EPD_Display(epd_buffer, epd_buffer_size);
 }
 
