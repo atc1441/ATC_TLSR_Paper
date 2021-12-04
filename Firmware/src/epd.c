@@ -250,6 +250,14 @@ void epd_display(){
 	EPD_Display(epd_buffer, epd_buffer_size);
 }
 
+void epd_display_char(uint8_t data){
+    int i;
+    for(i=0;i<epd_buffer_size;i++){
+        epd_buffer[i]=data;
+    }
+	EPD_Display(epd_buffer, epd_buffer_size);
+}
+
 void epd_clear(){
 	memset(epd_buffer,0x00,epd_buffer_size);
 }

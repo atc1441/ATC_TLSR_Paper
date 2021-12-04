@@ -77,7 +77,7 @@ BIN_FILE := $(OUT_PATH)/../$(PROJECT_NAME).bin
 ELF_FILE := $(OUT_PATH)/$(PROJECT_NAME).elf
 
 # All Target
-all: clean pre-build main-build
+all: pre-build main-build
 # Main-build Target
 main-build: $(ELF_FILE) secondary-outputs
 
