@@ -10,6 +10,5 @@
 #include "flash.h"
 
 void user_init_normal(void);
-_attribute_ram_code_ void user_init_deepRetn(void);
-void deinit_gpio();
+void user_init_deepRetn(void);
 void main_loop();
