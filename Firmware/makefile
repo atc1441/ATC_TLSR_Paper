@@ -12,7 +12,7 @@ endif
 
 LIBS :=  -llt_8258
 
-TEL_PATH ?= ./
+TEL_PATH := ./
 
 PROJECT_NAME := ATC_Paper
 
