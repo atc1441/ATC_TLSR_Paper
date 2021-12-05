@@ -11,4 +11,5 @@
 
 void user_init_normal(void);
 void user_init_deepRetn(void);
+void set_time(uint32_t time_now);
 void main_loop();

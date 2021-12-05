@@ -52,8 +52,9 @@ void cmd_parser(void * p){
 	}else if(inData == 0xFC){
 		settings.temp_alarm_point = req->dat[1];//Set temp alarm point value divided by 10 for temp in °C
 		if(settings.temp_alarm_point==0)settings.temp_alarm_point = 1;
-	}else if(inData == 0xDD){// Set display segments directly
-	
+	}else if(inData == 0xDD){// Set time
+		uint32_t new_time = (req->dat[1]<<24) +(req->dat[2]<<16) +(req->dat[3]<<8) +(req->dat[4]&0xff);
+		set_time(new_time);
 	}else if(inData == 0xDE){// Save settings in flash to default
 		reset_settings_to_default();
 		save_settings_to_flash();

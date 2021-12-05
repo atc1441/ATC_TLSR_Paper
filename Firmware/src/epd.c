@@ -10,6 +10,7 @@
 #include "OneBitDisplay.h"
 extern const uint8_t ucMirror[];
 #include "Roboto_Black_80.h"
+#include "font_60.h"
 
 #define epd_height 150
 #define epd_width 250
@@ -265,12 +266,17 @@ _attribute_ram_code_ void FixBuffer(uint8_t *pSrc, uint8_t *pDst)
         }                                      // for x
     }                                          // for y
 }
-_attribute_ram_code_ void epd_display()
+
+_attribute_ram_code_ void epd_display(uint32_t time_is)
 {
+    if (epd_update_state)
+        return;
     obdCreateVirtualDisplay(&obd, 250, 122, epd_temp);
     obdFill(&obd, 0, 0); // fill with white
-    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 60, (char *)"Sleep", 1);
-    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"tests", 1);
+    char buff[25];
+    sprintf(buff,"%02d:%02d:%02d",((time_is/60)/60)%24,(time_is/60)%60,time_is%60);
+    obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 10, 45, (char *)buff, 1);
+    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"Time", 1);
     FixBuffer(epd_temp, epd_buffer);
     EPD_Display(epd_buffer, epd_buffer_size);
 }
