@@ -79,6 +79,16 @@ int otaWritePre(void * p)
 	custom_otaWrite(p);
 	return 0;
 }
+int otaReadPre(void * p)
+{
+	set_led_color(2);
+	extern uint8_t my_OtaData[20];
+	my_OtaData[0]++;
+	my_OtaData[1]++;
+	my_OtaData[2]++;
+	my_OtaData[3]++;
+	return 0;
+}
 
 int RxTxWrite(void * p)
 {

@@ -44,16 +44,16 @@ _attribute_ram_code_ void user_init_deepRetn(void)
 
 _attribute_ram_code_ void main_loop()
 {
-    set_led_color(1);
     blt_sdk_main_loop();
+    set_led_color(1);
 
-    if (epd_state_handler()) // if epd_update is ongoing make a gpio wakeup to put it so sleep as fast as possible
+    if (epd_state_handler()) // if epd_update is ongoing enable gpio wakeup to put the display to sleep as fast as possible
     {
         cpu_set_gpio_wakeup(EPD_BUSY, 1, 1);
         bls_pm_setWakeupSource(PM_WAKEUP_PAD);
     }
     deinit_nfc();
     deinit_led();
-    //gpio_shutdown(GPIO_ALL);
+    gpio_shutdown(GPIO_ALL);
     blt_pm_proc();
 }

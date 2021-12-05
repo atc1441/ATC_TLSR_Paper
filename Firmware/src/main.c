@@ -18,7 +18,7 @@
 #include "ota.h"
 #include "uart.h"
 
-_attribute_ram_code_ void irq_handler(void)
+_attribute_ram_code_ __attribute__((optimize("-Os"))) void irq_handler(void)
 {
 	irq_blt_sdk_handler();
 }

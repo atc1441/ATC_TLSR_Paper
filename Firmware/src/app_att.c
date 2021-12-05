@@ -72,7 +72,7 @@ RAM u8 my_tempVal[2] 	= {0};
 /////////////////////////////////////////////////////////
 static const  u8 my_OtaUUID[16]					    = TELINK_SPP_DATA_OTA;
 static const  u8 my_OtaServiceUUID[16]				= TELINK_OTA_UUID_SERVICE;
-static u8 my_OtaData 						        = 0x00;
+RAM u8 my_OtaData[20];
 static const u8  my_OtaName[] = {'O', 'T', 'A'};
 
 // RxTx Char
@@ -139,6 +139,7 @@ static const u8 my_RxTxCharVal[5] = {
 };
 
 extern int otaWritePre(void * p);
+extern int otaReadPre(void * p);
 extern int RxTxWrite(void * p);
 // TM : to modify
 static const attribute_t my_Attributes[] = {
@@ -164,7 +165,7 @@ static const attribute_t my_Attributes[] = {
 	{0,ATT_PERMISSIONS_RDWR,2,sizeof(batteryValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(batteryValueInCCC), 0},	//value
 	////////////////////////////////////// Temp Service /////////////////////////////////////////////////////
 	// 002a - 002d
-	{7,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_tempServiceUUID), 0},
+	{4,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_tempServiceUUID), 0},
 	{0,ATT_PERMISSIONS_READ,2,sizeof(my_tempCharVal),(u8*)(&my_characterUUID), (u8*)(my_tempCharVal), 0},				//prop
 	{0,ATT_PERMISSIONS_READ,2,sizeof(my_tempVal),(u8*)(&my_tempCharUUID), 	(u8*)(my_tempVal), 0},	//value
 	{0,ATT_PERMISSIONS_RDWR,2,sizeof(tempValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(tempValueInCCC), 0},	//value
@@ -172,7 +173,7 @@ static const attribute_t my_Attributes[] = {
 	// 002e - 0031
 	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_OtaServiceUUID), 0},
 	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_OtaCharVal),(u8*)(&my_characterUUID), (u8*)(my_OtaCharVal), 0},				//prop
-	{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(&my_OtaData), &otaWritePre, &otaRead},			//value
+	{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(&my_OtaData), &otaWritePre, &otaReadPre},			//value
 	{0,ATT_PERMISSIONS_READ, 2,sizeof (my_OtaName),(u8*)(&userdesc_UUID), (u8*)(my_OtaName), 0},
 	////////////////////////////////////// RxTx ////////////////////////////////////////////////////
 	// RxTx Communication
