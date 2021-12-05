@@ -179,10 +179,10 @@ typedef void (*blt_event_callback_t)(u8 e, u8 *p, int n);
 
 
 my_fifo_t			blt_rxfifo;
-u8					blt_rxfifo_b[];
+//u8					blt_rxfifo_b[];
 
 my_fifo_t			blt_txfifo;
-u8					blt_txfifo_b[];
+//u8					blt_txfifo_b[];
 //////////////////////////////////////
 
 

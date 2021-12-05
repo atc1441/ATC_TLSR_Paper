@@ -48,7 +48,8 @@ GCC_FLAGS := \
 -std=gnu99 \
 -funsigned-char \
 -fshort-wchar \
--fms-extensions
+-fms-extensions \
+-Wno-unused
 
 INCLUDE_PATHS := -I$(TEL_PATH)/components -I$(PROJECT_PATH)
 

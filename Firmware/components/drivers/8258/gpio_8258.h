@@ -162,6 +162,7 @@ void gpio_init(int anaRes_init_en);
  * @return     none.
  */
 void gpio_set_func(GPIO_PinTypeDef pin, GPIO_FuncTypeDef func);
+void gpio_set_func2(GPIO_PinTypeDef pin, GPIO_FuncTypeDef func);
 
 /**
  * @brief      This function set the output function of a pin.

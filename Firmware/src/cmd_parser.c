@@ -45,25 +45,13 @@ void cmd_parser(void * p){
 		settings.comfort_smiley = true; // Comfort Indicator
 	}else if(inData == 0xAB){
 		settings.blinking_smiley = true;//Smiley blinking
-	}else if(inData == 0xAE){
-		settings.advertising_type = false;//Advertising type Custom
-	}else if(inData == 0xAF){
-		settings.advertising_type = true;//Advertising type Mi Like
 	}else if(inData == 0xFE){
 		settings.advertising_interval = req->dat[1];//Set advertising interval with second byte, value*10second / 0=main_delay
 	}else if(inData == 0xFA){
 		settings.temp_offset = req->dat[1];//Set temp offset, -12,5 - +12,5 °C
-	}else if(inData == 0xFB){
-		settings.humi_offset = req->dat[1];//Set humi offset, -50 - +50 %
-		if(settings.humi_offset<-50)settings.humi_offset=-50;
-		if(settings.humi_offset>50)settings.humi_offset=50;
 	}else if(inData == 0xFC){
 		settings.temp_alarm_point = req->dat[1];//Set temp alarm point value divided by 10 for temp in °C
 		if(settings.temp_alarm_point==0)settings.temp_alarm_point = 1;
-	}else if(inData == 0xFD){
-		settings.humi_alarm_point = req->dat[1];//Set humi alarm point
-		if(settings.humi_alarm_point==0)settings.humi_alarm_point = 1;
-		if(settings.humi_alarm_point>50)settings.humi_alarm_point = 50;
 	}else if(inData == 0xDD){// Set display segments directly
 	
 	}else if(inData == 0xDE){// Save settings in flash to default

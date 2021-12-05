@@ -837,7 +837,6 @@ int iPitch = pOBD->width;
 //
 void obdWriteDataBlock(OBDISP *pOBD, unsigned char *ucBuf, int iLen, int bRender)
 {
-unsigned char ucTemp[196];
 int iPitch, iBufferSize;
 
   iPitch = pOBD->width;
@@ -1210,7 +1209,7 @@ int obdLoadBMP(OBDISP *pOBD, uint8_t *pBMP, int dx, int dy, int bInvert)
 int16_t i16, cx, cy;
 int iOffBits; // offset to bitmap data
 int iPitch, iDestPitch;
-uint8_t x, y, b, *s, *d;
+uint8_t x, y, b = 0, *s, *d;
 uint8_t dst_mask, src_mask;
 uint8_t bFlipped = false;
 

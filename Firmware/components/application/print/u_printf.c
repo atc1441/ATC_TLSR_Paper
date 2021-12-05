@@ -205,16 +205,17 @@ static int print(char **out, const char *format, va_list args) {
 	return pc;
 }
 
+//extern void puts(const char* str);
 int u_printf(const char *format, ...) {
 	static char my_printf_buff[1024] = { 0 };
 	char *out = &my_printf_buff[0];
 
-	extern void puts(char* s);
 	
 	va_list args;
 	va_start(args, format );
 	print(&out, format, args);
-	puts(my_printf_buff);
+	//puts(my_printf_buff);
+	return 0;
 }
 
 int u_sprintf(char *out, const char *format, ...) {

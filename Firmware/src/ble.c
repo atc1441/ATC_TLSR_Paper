@@ -16,7 +16,6 @@
 RAM	uint8_t	ble_connected = 0;
 
 extern uint8_t my_tempVal[2];
-extern uint8_t my_humiVal[2];
 extern uint8_t my_batVal[1];
 
 RAM uint8_t 		 	blt_rxfifo_b[64 * 8] = {0};
@@ -26,17 +25,6 @@ RAM uint8_t 			blt_txfifo_b[40 * 16] = {0};
 RAM	my_fifo_t	blt_txfifo = { 40, 16, 0, 0, blt_txfifo_b,};
 
 RAM uint8_t	ble_name[] = {11, 0x09, 'E', 'S', 'L', '_', '0', '0', '0', '0', '0', '0'};
-
-RAM bool show_temp_humi_Mi = true;
-
-RAM uint8_t	advertising_data_Mi[] = {
- /*Description*/21, 0x16, 0x95, 0xfe,
- /*Start*/0x50, 0x30, 
- /*Device id*/0x5B, 0x05, 
- /*counter*/0x00,
- /*MAC*/0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
- /*Temp+Humi*//*BatL alternating*/0x0D, 0x10, 0x04, 0x00, 0x00, 0x00, 0x00,
-};
 
 RAM uint8_t	advertising_data[] = {
  /*Description*/16, 0x16, 0x1a, 0x18, 
@@ -130,13 +118,6 @@ void init_ble(){
 	advertising_data[8] = mac_public[1];
 	advertising_data[9] = mac_public[0];
 	
-	advertising_data_Mi[9] = mac_public[0];
-	advertising_data_Mi[10] = mac_public[1];
-	advertising_data_Mi[11] = mac_public[2];
-	advertising_data_Mi[12] = mac_public[3];
-	advertising_data_Mi[13] = mac_public[4];
-	advertising_data_Mi[14] = mac_public[5];
-	
 ////// Controller Initialization  //////////
 	blc_ll_initBasicMCU();                      //must
 	blc_ll_initStandby_module(mac_public);		//must
@@ -175,34 +156,7 @@ bool ble_get_connected(){
 	return ble_connected;
 }
 
-extern settings_struct settings;//Custom or Mi Advertising
 void set_adv_data(int16_t temp, uint16_t humi, uint8_t battery_level, uint16_t battery_mv){
-	if(settings.advertising_type){//Mi Like Advertising
-		humi = humi * 10;
-		
-		advertising_data_Mi[8]++;
-		
-		if(show_temp_humi_Mi){//Alternate between Sensor and Battery level
-			advertising_data_Mi[15] = 0x0d;
-			advertising_data_Mi[17] = 0x04;	
-		
-			advertising_data_Mi[18] = temp&0xff;
-			advertising_data_Mi[19] = temp>>8;	
-			advertising_data_Mi[20] = humi&0xff;
-			advertising_data_Mi[21] = humi>>8;
-		}else{
-			advertising_data_Mi[15] = 0x0a;
-			advertising_data_Mi[17] = 0x01;	
-		
-			advertising_data_Mi[18] = battery_level;
-			advertising_data_Mi[19] = 0x00;
-			advertising_data_Mi[20] = 0x00;
-			advertising_data_Mi[21] = 0x00;
-		}	
-		show_temp_humi_Mi = !show_temp_humi_Mi;
-		
-		bls_ll_setAdvData( (uint8_t *)advertising_data_Mi, sizeof(advertising_data_Mi));	
-	}else{//Custom advertising type
 		advertising_data[10] = temp>>8;
 		advertising_data[11] = temp&0xff;
 		
@@ -216,20 +170,12 @@ void set_adv_data(int16_t temp, uint16_t humi, uint8_t battery_level, uint16_t b
 		advertising_data[16]++;
 		
 		bls_ll_setAdvData( (uint8_t *)advertising_data, sizeof(advertising_data));	
-	}
 }
 
 void ble_send_temp(uint16_t temp){
 	my_tempVal[0] = temp & 0xFF;
 	my_tempVal[1] = temp >> 8;
 	bls_att_pushNotifyData(TEMP_LEVEL_INPUT_DP_H, my_tempVal, 2);
-}
-
-void ble_send_humi(uint16_t humi){
-	humi*=100;
-	my_humiVal[0] = humi & 0xFF;
-	my_humiVal[1] = humi >> 8;
-	bls_att_pushNotifyData(HUMI_LEVEL_INPUT_DP_H, (uint8_t *)my_humiVal, 2);
 }
 
 void ble_send_battery(uint8_t value){

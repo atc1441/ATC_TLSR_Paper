@@ -66,11 +66,8 @@ RAM u8 my_batVal[1] 	= {100};
 //////////////////////// Temp /////////////////////////////////////////////////
 static const u16 my_tempServiceUUID       = 0x181A;
 static const u16 my_tempCharUUID       	  = 0x2A1F;
-static const u16 my_humiCharUUID       	  = 0x2A6F;
 static u8 tempValueInCCC[2];
 RAM u8 my_tempVal[2] 	= {0};
-static u8 humiValueInCCC[2];
-RAM u8 my_humiVal[2] 	= {0};
 
 /////////////////////////////////////////////////////////
 static const  u8 my_OtaUUID[16]					    = TELINK_SPP_DATA_OTA;
@@ -83,10 +80,6 @@ static const  u16 my_RxTxUUID				= 0x1f1f;
 static const  u16 my_RxTx_ServiceUUID		= 0x1f10;
 static u8 	  my_RxTx_Data 					= 0x00;
 static u8 RxTxValueInCCC[2];
-
-//0x95FE
-static const  u16 my_FE95_ServiceUUID		= 0xFE95;
-static const u8  my_MiName[] = {'M', 'i'};
 
 // Include attribute (Battery service)
 static const u16 include[3] = {BATT_PS_H, BATT_LEVEL_INPUT_CCB_H, SERVICE_UUID_BATTERY};
@@ -128,13 +121,6 @@ static const u8 my_tempCharVal[5] = {
 	CHAR_PROP_READ | CHAR_PROP_NOTIFY,
 	U16_LO(TEMP_LEVEL_INPUT_DP_H), U16_HI(TEMP_LEVEL_INPUT_DP_H),
 	U16_LO(0x2A1F), U16_HI(0x2A1F)
-};
-
-//// Humi attribute values
-static const u8 my_humiCharVal[5] = {
-	CHAR_PROP_READ | CHAR_PROP_NOTIFY,
-	U16_LO(HUMI_LEVEL_INPUT_DP_H), U16_HI(HUMI_LEVEL_INPUT_DP_H),
-	U16_LO(0x2A6F), U16_HI(0x2A6F)
 };
 
 //// OTA attribute values
@@ -182,10 +168,6 @@ static const attribute_t my_Attributes[] = {
 	{0,ATT_PERMISSIONS_READ,2,sizeof(my_tempCharVal),(u8*)(&my_characterUUID), (u8*)(my_tempCharVal), 0},				//prop
 	{0,ATT_PERMISSIONS_READ,2,sizeof(my_tempVal),(u8*)(&my_tempCharUUID), 	(u8*)(my_tempVal), 0},	//value
 	{0,ATT_PERMISSIONS_RDWR,2,sizeof(tempValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(tempValueInCCC), 0},	//value
-
-	{0,ATT_PERMISSIONS_READ,2,sizeof(my_humiCharVal),(u8*)(&my_characterUUID), (u8*)(my_humiCharVal), 0},				//prop
-	{0,ATT_PERMISSIONS_READ,2,sizeof(my_humiVal),(u8*)(&my_humiCharUUID), 	(u8*)(my_humiVal), 0},	//value
-	{0,ATT_PERMISSIONS_RDWR,2,sizeof(humiValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(humiValueInCCC), 0},	//value
 	////////////////////////////////////// OTA /////////////////////////////////////////////////////
 	// 002e - 0031
 	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_OtaServiceUUID), 0},

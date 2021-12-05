@@ -6,7 +6,7 @@ extern "C" {
 
 #define CLOCK_SYS_CLOCK_HZ  	24000000
 
-#define ADVERTISING_INTERVAL 3000
+#define ADVERTISING_INTERVAL 300
 
 #define RAM _attribute_data_retention_ // short version, this is needed to keep the values in ram after sleep
 
@@ -52,10 +52,6 @@ typedef enum
 	TEMP_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
 	TEMP_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: tempVal
 	TEMP_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: tempValCCC
-	
-	HUMI_LEVEL_INPUT_CD_H,					//UUID: 2803, 	VALUE:  			Prop: Read | Notify
-	HUMI_LEVEL_INPUT_DP_H,					//UUID: 2A19 	VALUE: humiVal
-	HUMI_LEVEL_INPUT_CCB_H,					//UUID: 2902, 	VALUE: humiValCCC
 
 	//// Ota ////
 	/**********************************************************************************************/

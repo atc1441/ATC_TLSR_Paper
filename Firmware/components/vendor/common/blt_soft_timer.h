@@ -32,7 +32,7 @@
 
 //user define
 #ifndef BLT_SOFTWARE_TIMER_ENABLE
-#define BLT_SOFTWARE_TIMER_ENABLE					0   //enable or disable
+#define BLT_SOFTWARE_TIMER_ENABLE					1   //enable or disable
 #endif
 
 

@@ -33,13 +33,10 @@ void reset_settings_to_default()
 	settings.blinking_smiley = false;
 	settings.comfort_smiley = true;
 	settings.show_batt_enabled = true;
-	settings.advertising_type = false;
 	settings.advertising_interval = 6;
 	settings.measure_interval = 10;
 	settings.temp_offset = 0;
-	settings.humi_offset = 0;
 	settings.temp_alarm_point = 5;
-	settings.humi_alarm_point = 5;
 }
 
 void save_settings_to_flash()
