@@ -8,18 +8,21 @@
 #include "battery.h"
 
 #include "OneBitDisplay.h"
+#include "TIFF_G4.h"
 extern const uint8_t ucMirror[];
 #include "Roboto_Black_80.h"
+#include "bart_tif.h"
 
-#define epd_height 150
+#define epd_height 128
 #define epd_width 250
-#define epd_buffer_size (epd_height * epd_width) / 8
+#define epd_buffer_size ((epd_height/8) * epd_width)
 
 RAM uint8_t epd_update_state = 0;
 
-RAM uint8_t epd_buffer[epd_buffer_size];
-RAM uint8_t epd_temp[epd_buffer_size]; // for OneBitDisplay to draw into
-RAM OBDISP obd;                        // virtual display structure
+uint8_t epd_buffer[epd_buffer_size];
+uint8_t epd_temp[epd_buffer_size]; // for OneBitDisplay to draw into
+OBDISP obd;                        // virtual display structure
+TIFFIMAGE tiff;
 
 #define EPD_POWER_ON() gpio_write(EPD_ENABLE, 0)
 
@@ -265,13 +268,47 @@ _attribute_ram_code_ void FixBuffer(uint8_t *pSrc, uint8_t *pDst)
         }                                      // for x
     }                                          // for y
 }
+
+_attribute_ram_code_ void TIFFDraw(TIFFDRAW *pDraw)
+{
+uint8_t uc=0, ucSrcMask, ucDstMask, *s, *d;
+int x, y;
+
+   s = pDraw->pPixels;
+   y = pDraw->y; // current line
+   d = &epd_buffer[(249*16)+(y/8)]; // rotated 90 deg clockwise
+   ucDstMask = 0x80 >> (y & 7); // destination mask
+   ucSrcMask = 0; // src mask
+   for (x=0; x<pDraw->iWidth; x++) {
+      // Slower to draw this way, but it allows us to use a single buffer
+      // instead of drawing and then converting the pixels to be the EPD format
+      if (ucSrcMask == 0) { // load next source byte
+          ucSrcMask = 0x80;
+	  uc = *s++;
+      }
+      if (!(uc & ucSrcMask)) { // black pixel
+         d[-(x*16)] &= ~ucDstMask;
+      }
+      ucSrcMask >>= 1;
+   }
+} /* TIFFDraw() */
+
 _attribute_ram_code_ void epd_display()
 {
     obdCreateVirtualDisplay(&obd, 250, 122, epd_temp);
     obdFill(&obd, 0, 0); // fill with white
-    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 60, (char *)"Sleep", 1);
-    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"tests", 1);
-    FixBuffer(epd_temp, epd_buffer);
+//    obdWriteString(&obd, 0,0,0,(char *)"testing G4 decoder", FONT_12x16, 0, 0);
+    //    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 60, (char *)"Sleep", 1);
+//    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"tests", 1);
+//    FixBuffer(epd_temp, epd_buffer);
+//    EPD_Display(epd_buffer, epd_buffer_size);
+
+    // test G4 decoder
+    memset(epd_buffer, 0xff, epd_buffer_size); // clear to white
+    TIFF_openRAW(&tiff, 250, 122, BITDIR_MSB_FIRST, (uint8_t *)bart_tif, sizeof(bart_tif), TIFFDraw);
+    TIFF_setDrawParameters(&tiff, 65536, TIFF_PIXEL_1BPP, 0, 0, 250, 122, NULL);
+    TIFF_decode(&tiff);
+    TIFF_close(&tiff);
     EPD_Display(epd_buffer, epd_buffer_size);
 }
 
