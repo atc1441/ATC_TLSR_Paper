@@ -32,7 +32,7 @@ void user_init_normal(void)
     init_flash();
     battery_mv = get_battery_mv();
     battery_level = get_battery_level(battery_mv);
-    epd_display(0);
+    epd_display_tiff();
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void)

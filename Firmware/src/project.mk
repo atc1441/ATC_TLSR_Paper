@@ -11,6 +11,7 @@ $(OUT_PATH)/ota.o \
 $(OUT_PATH)/led.o \
 $(OUT_PATH)/uart.o \
 $(OUT_PATH)/nfc.o \
+$(OUT_PATH)/tiffg4.o \
 $(OUT_PATH)/one_bit_display.o \
 $(OUT_PATH)/main.o
 
