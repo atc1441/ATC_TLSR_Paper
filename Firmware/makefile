@@ -1,7 +1,7 @@
 TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258
 
 ifeq ($(OS), Windows_NT)
-	TC32_COMPILER_PATH := tc32_windows/bin/
+	TC32_COMPILER_PATH := tc32_windows\\bin\\
 	WINDOWS_PREFIX :=$(TC32_COMPILER_PATH)
 	LINUX_CHMOD := 
 else

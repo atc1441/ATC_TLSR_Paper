@@ -32,7 +32,7 @@ void user_init_normal(void)
     init_flash();
     battery_mv = get_battery_mv();
     battery_level = get_battery_level(battery_mv);
-    epd_display();
+    epd_display(0);
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void)
@@ -42,11 +42,30 @@ _attribute_ram_code_ void user_init_deepRetn(void)
     blc_ll_recoverDeepRetention();
 }
 
+RAM uint32_t current_unix_time;
+RAM uint32_t last_clock_increase;
+
+void set_time(uint32_t time_now)
+{
+    current_unix_time = time_now;
+}
+
+RAM uint32_t last_update;
 _attribute_ram_code_ void main_loop()
 {
     blt_sdk_main_loop();
+    if (clock_time() - last_clock_increase >= CLOCK_16M_SYS_TIMER_CLK_1S)
+    {
+        last_clock_increase += CLOCK_16M_SYS_TIMER_CLK_1S;
+        current_unix_time++;
+    }
     set_led_color(1);
 
+    if (current_unix_time - last_update > 30)
+    {
+        last_update = current_unix_time;
+        epd_display(current_unix_time);
+    }
     if (epd_state_handler()) // if epd_update is ongoing enable gpio wakeup to put the display to sleep as fast as possible
     {
         cpu_set_gpio_wakeup(EPD_BUSY, 1, 1);

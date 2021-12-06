@@ -12,6 +12,7 @@
 extern const uint8_t ucMirror[];
 #include "Roboto_Black_80.h"
 #include "bart_tif.h"
+#include "font_60.h"
 
 #define epd_height 128
 #define epd_width 250
@@ -293,16 +294,8 @@ int x, y;
    }
 } /* TIFFDraw() */
 
-_attribute_ram_code_ void epd_display()
+_attribute_ram_code_ void epd_display_tiff()
 {
-    obdCreateVirtualDisplay(&obd, 250, 122, epd_temp);
-    obdFill(&obd, 0, 0); // fill with white
-//    obdWriteString(&obd, 0,0,0,(char *)"testing G4 decoder", FONT_12x16, 0, 0);
-    //    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 60, (char *)"Sleep", 1);
-//    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"tests", 1);
-//    FixBuffer(epd_temp, epd_buffer);
-//    EPD_Display(epd_buffer, epd_buffer_size);
-
     // test G4 decoder
     memset(epd_buffer, 0xff, epd_buffer_size); // clear to white
     TIFF_openRAW(&tiff, 250, 122, BITDIR_MSB_FIRST, (uint8_t *)bart_tif, sizeof(bart_tif), TIFFDraw);
@@ -310,7 +303,22 @@ _attribute_ram_code_ void epd_display()
     TIFF_decode(&tiff);
     TIFF_close(&tiff);
     EPD_Display(epd_buffer, epd_buffer_size);
-}
+} /* epd_display_tiff() */
+
+_attribute_ram_code_ void epd_display(uint32_t time_is)
+{
+    if (epd_update_state)
+        return;
+    obdCreateVirtualDisplay(&obd, 250, 122, epd_temp);
+    obdFill(&obd, 0, 0); // fill with white
+
+    char buff[25];
+    sprintf(buff,"%02d:%02d:%02d",((time_is/60)/60)%24,(time_is/60)%60,time_is%60);
+    obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 10, 45, (char *)buff, 1);
+    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"Time", 1);
+    FixBuffer(epd_temp, epd_buffer);
+    EPD_Display(epd_buffer, epd_buffer_size);
+} /* epd_display() */
 
 _attribute_ram_code_ void epd_display_char(uint8_t data)
 {
