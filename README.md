@@ -31,3 +31,15 @@ Open the Compiled .bin firmware with the WebSerial Flasher and write it to Flash
 
 On first Connection it is needed to Unlock the flash of the TLSR8359
 
+#### About the display:
+The e-ink panel used in this ESL is 250 by 122 pixels, black and white (no gray levels...yet).
+
+Larry Bank added his OneBitDisplay (https://github.com/bitbank2/OneBitDisplay) and TIFF_G4 (https://github.com/bitbank2/TIFF_G4) libraries to make it easy to generate text and graphics. For anyone wanting to write directly to the display buffer, the memory is laid out like a typical 1-bpp bitmap except that it is rotated 90 degrees clockwise. In other words, the display is really 122 wide by 250 tall, but laying on its side. Each byte contains 8 pixels with the most significant bit on the left. Black is 0 and white is 1. Each row of 122 pixels uses 16 bytes. Here is an example function to set a pixel given the x,y of the orientation (portrait) that the display is used:<br>
+<br>
+```
+void SetPixel(int x, int y, uint8_t *pDisplayBuffer)
+{
+   uint8_t *d = &pDisplayBuffer[(y >> 3) + (249-x)*16];
+   *d &= ~(0x80 >> (y & 7)); // set pixel to black
+}
+```
