@@ -24,8 +24,6 @@ Enter "makeit.exe" and wait till the Compiling is done.
 ##### Linux:
 Navigate with a Terminal into the "Firmware" Folder
 
-Enter "chmod 777 -R ./"
-
 Enter "make" and wait till the Compiling is done.
 
 #### Flashing:
