@@ -24,7 +24,7 @@ void init_uart()
 	uart_ndma_irq_triglevel(0, 0);
 }
 
-_attribute_ram_code_ void puts(const char* str) 
+_attribute_ram_code_ void uart_write(const char* str)
 {
 	while (*str != '\0')
 	{
