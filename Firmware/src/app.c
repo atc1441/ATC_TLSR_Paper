@@ -25,6 +25,12 @@ RAM bool show_batt_or_humi;
 // Settings
 extern settings_struct settings;
 
+// All black.
+// static unsigned char image[epd_buffer_size] = {0x00};
+
+unsigned char image[epd_buffer_size];
+// unsigned char image2[epd_buffer_size];
+
 void user_init_normal(void)
 {                            // this will get executed one time after power up
     random_generator_init(); // must
@@ -33,6 +39,19 @@ void user_init_normal(void)
     battery_mv = get_battery_mv();
     battery_level = get_battery_level(battery_mv);
     epd_display_tiff();
+
+    // image[1 * epd_height/8 + 0] = 0xff;
+    // image[1 * epd_height/8 + 1] = 0xff;
+    // image[1 * epd_height/8 + 2] = 0xff;
+    // image[1 * epd_height/8 + 3] = 0xff;
+
+    // Rectangle in the middle of the screen.
+    for (int x = 0; x < 50; x++) {
+      for (int y = 0; y < 12; y++) {
+        image[(x + 100) * epd_height / 8 + y + 2] = 0xff;
+      }
+    }
+    EPD_Display(image, sizeof(image));
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void)
@@ -64,7 +83,7 @@ _attribute_ram_code_ void main_loop()
     if (current_unix_time - last_update > 30)
     {
         last_update = current_unix_time;
-        epd_display(current_unix_time);
+        // epd_display(current_unix_time);
     }
     if (epd_state_handler()) // if epd_update is ongoing enable gpio wakeup to put the display to sleep as fast as possible
     {

@@ -1,5 +1,9 @@
 #pragma once
 
+#define epd_height 128
+#define epd_width 250
+#define epd_buffer_size ((epd_height/8) * epd_width)
+
 void EPD_DLY_LP(unsigned int ms);
 void EPD_SPI_Write(unsigned char value);
 void EPD_WriteCmd(unsigned char cmd);

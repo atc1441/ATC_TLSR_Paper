@@ -66,7 +66,14 @@ typedef enum
 	RxTx_CMD_OUT_CD_H,						//UUID: , 	VALUE:  			Prop: read | write_without_rsp
 	RxTx_CMD_OUT_DP_H,						//UUID: RxTx uuid,  VALUE: RxTxData
 	RxTx_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: RxTxName
-	
+
+	//// RxTx ////
+	/**********************************************************************************************/
+	DrawPixel_PS_H, 								//UUID: , 	VALUE: DrawPixel service uuid
+	DrawPixel_CMD_OUT_CD_H,						//UUID: , 	VALUE:  			Prop: write_without_rsp
+	DrawPixel_CMD_OUT_DP_H,						//UUID: DrawPixel uuid,  VALUE: DrawPixelData
+	DrawPixel_CMD_OUT_DESC_H,						//UUID: , 	VALUE: DrawPixelName
+
 	ATT_END_H,
 
 }ATT_HANDLE;
