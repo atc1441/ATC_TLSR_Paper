@@ -4,6 +4,7 @@
 #include "stack/ble/ble.h"
 #include "uart.h"
 #include "epd.h"
+#include "epd_ble_service.h"
 
 typedef struct
 {
@@ -83,10 +84,10 @@ static const  u16 my_RxTx_ServiceUUID		= 0x1f10;
 static u8 	  my_RxTx_Data 					= 0x00;
 static u8 RxTxValueInCCC[2];
 
-// DrawPixel Char
-static const  u16 my_DrawPixelUUID				= 0xabab;
-static const  u16 my_DrawPixel_ServiceUUID		= 0xabaa;
-static u8 	  my_DrawPixel_Data 					= 0x00;
+// EPD_BLE Char
+static const  u16 my_EPD_BLEUUID				= 0xabab;
+static const  u16 my_EPD_BLE_ServiceUUID		= 0xabaa;
+static u8 	  my_EPD_BLE_Data 					= 0x00;
 
 // Include attribute (Battery service)
 static const u16 include[3] = {BATT_PS_H, BATT_LEVEL_INPUT_CCB_H, SERVICE_UUID_BATTERY};
@@ -145,10 +146,10 @@ static const u8 my_RxTxCharVal[5] = {
 	U16_LO(0x1f1f), U16_HI(0x1f1f)
 };
 
-//// DrawPixel attribute values
-static const u8 my_DrawPixelCharVal[5] = {
+//// EPD_BLE attribute values
+static const u8 my_EPD_BLECharVal[5] = {
 	CHAR_PROP_WRITE_WITHOUT_RSP,
-	U16_LO(DrawPixel_CMD_OUT_DP_H), U16_HI(DrawPixel_CMD_OUT_DP_H),
+	U16_LO(EPD_BLE_CMD_OUT_DP_H), U16_HI(EPD_BLE_CMD_OUT_DP_H),
 	U16_LO(0xabab), U16_HI(0xabab)
 };
 
@@ -159,28 +160,40 @@ extern int RxTxWrite(void * p);
 unsigned char image[epd_buffer_size];
 unsigned int byte_pos = 0;
 
-int DrawPixels(void * p) {
+int epd_ble_handle_write2(void * p) {
 	rf_packet_att_write_t *req = (rf_packet_att_write_t*)p;
-	char buf[64];
-	sprintf(buf, "Size: %d\n", req->l2capLen);
-	uart_write(buf);
-	uint8_t *v = &req->value;
-	memcpy(image + byte_pos, (uint8_t *) &req->value, req->l2capLen - 3);
-	byte_pos += req->l2capLen - 3;
+	uint8_t *payload = &req->value;
+	unsigned int payload_len = req->l2capLen - 3;
 
-	if (byte_pos > 2047) {
-		EPD_Display(image, epd_buffer_size);
-		memset(image, 0xff, epd_buffer_size);
-		byte_pos = 0;
+	switch (payload[0]) {
+		// Clear EPD display.
+		case 0x00:
+			memset(image, payload[1], sizeof(image));
+			break;
+		// Push buffer to display.
+		case 0x01:
+			EPD_Display(image, epd_buffer_size);
+			break;
+		// Set byte_pos.
+		case 0x02:
+			byte_pos = payload[1] << 8 | payload[2];
+			break;
+		// Write data to image buffer.
+		case 0x03:
+			memcpy(image + byte_pos, payload + 1, payload_len - 1);
+			byte_pos += payload_len - 1;
+			break;
+		// Push image buffer to display.
+		case 0x04:
+			EPD_Display(image, sizeof(image));
+			break;
+		default:
+			return -1;
 	}
-	for (int i = 0; i < 20; i++) {
-		// sprintf(buf, "0x%02x ", req->dat[i]);
-		sprintf(buf, "0x%02x ", *(v + i));
-		uart_write(buf);
-	}
-	uart_write("\n");
+
 	return 0;
 }
+
 
 // TM : to modify
 static const attribute_t my_Attributes[] = {
@@ -222,10 +235,10 @@ static const attribute_t my_Attributes[] = {
 	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_RxTxCharVal),(u8*)(&my_characterUUID), (u8*)(my_RxTxCharVal), 0},				//prop
 	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID),	(&my_RxTx_Data), &RxTxWrite},			//value
 	{0,ATT_PERMISSIONS_RDWR,2,sizeof(RxTxValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(RxTxValueInCCC), 0},	//value
-	////////////////////////////////////// DrawPixels ////////////////////////////////////////////////////
-	{4,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_DrawPixel_ServiceUUID), 0},
-	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_DrawPixelCharVal),(u8*)(&my_characterUUID), (u8*)(my_DrawPixelCharVal), 0},				//prop
-	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_DrawPixel_Data),(u8*)(&my_DrawPixelUUID),	(&my_DrawPixel_Data), (att_readwrite_callback_t)&DrawPixels},			//value
+	////////////////////////////////////// EPD_BLE ////////////////////////////////////////////////////
+	{4,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_EPD_BLE_ServiceUUID), 0},
+	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_EPD_BLECharVal),(u8*)(&my_characterUUID), (u8*)(my_EPD_BLECharVal), 0},				//prop
+	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_EPD_BLE_Data),(u8*)(&my_EPD_BLEUUID),	(&my_EPD_BLE_Data), (att_readwrite_callback_t) &epd_ble_handle_write2},			//value
 };
 
 void my_att_init(void)

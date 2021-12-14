@@ -3,6 +3,7 @@ $(OUT_PATH)/app.o \
 $(OUT_PATH)/app_att.o \
 $(OUT_PATH)/battery.o \
 $(OUT_PATH)/ble.o \
+$(OUT_PATH)/epd_ble_service.o \
 $(OUT_PATH)/i2c.o \
 $(OUT_PATH)/cmd_parser.o \
 $(OUT_PATH)/flash.o \

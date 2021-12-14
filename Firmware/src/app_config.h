@@ -67,12 +67,12 @@ typedef enum
 	RxTx_CMD_OUT_DP_H,						//UUID: RxTx uuid,  VALUE: RxTxData
 	RxTx_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: RxTxName
 
-	//// RxTx ////
+	//// EPD_BLE ////
 	/**********************************************************************************************/
-	DrawPixel_PS_H, 								//UUID: , 	VALUE: DrawPixel service uuid
-	DrawPixel_CMD_OUT_CD_H,						//UUID: , 	VALUE:  			Prop: write_without_rsp
-	DrawPixel_CMD_OUT_DP_H,						//UUID: DrawPixel uuid,  VALUE: DrawPixelData
-	DrawPixel_CMD_OUT_DESC_H,						//UUID: , 	VALUE: DrawPixelName
+	EPD_BLE_PS_H, 								//UUID: , 	VALUE: EPD_BLE service uuid
+	EPD_BLE_CMD_OUT_CD_H,						//UUID: , 	VALUE:  			Prop: write_without_rsp
+	EPD_BLE_CMD_OUT_DP_H,						//UUID: EPD_BLE uuid,  VALUE: EPD_BLEData
+	EPD_BLE_CMD_OUT_DESC_H,						//UUID: , 	VALUE: EPD_BLEName
 
 	ATT_END_H,
 
