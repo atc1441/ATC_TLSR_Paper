@@ -2,8 +2,6 @@
 
 #include "main.h"
 #include "stack/ble/ble.h"
-#include "uart.h"
-#include "epd.h"
 #include "epd_ble_service.h"
 
 typedef struct
