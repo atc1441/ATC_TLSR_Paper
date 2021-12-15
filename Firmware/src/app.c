@@ -39,18 +39,6 @@ void user_init_normal(void)
     battery_mv = get_battery_mv();
     battery_level = get_battery_level(battery_mv);
     epd_display_tiff();
-
-    // image[1 * epd_height/8 + 0] = 0xff;
-    // image[1 * epd_height/8 + 1] = 0xff;
-    // image[1 * epd_height/8 + 2] = 0xff;
-    // image[1 * epd_height/8 + 3] = 0xff;
-
-    // Rectangle in the middle of the screen.
-    for (int x = 0; x < 50; x++) {
-      for (int y = 0; y < 12; y++) {
-        image[(x + 100) * epd_height / 8 + y + 2] = 0xff;
-      }
-    }
     EPD_Display(image, sizeof(image));
 }
 

@@ -157,44 +157,6 @@ extern int otaWritePre(void * p);
 extern int otaReadPre(void * p);
 extern int RxTxWrite(void * p);
 
-unsigned char image[epd_buffer_size];
-unsigned int byte_pos = 0;
-
-int epd_ble_handle_write2(void * p) {
-	rf_packet_att_write_t *req = (rf_packet_att_write_t*)p;
-	uint8_t *payload = &req->value;
-	unsigned int payload_len = req->l2capLen - 3;
-
-	switch (payload[0]) {
-		// Clear EPD display.
-		case 0x00:
-			memset(image, payload[1], sizeof(image));
-			break;
-		// Push buffer to display.
-		case 0x01:
-			EPD_Display(image, epd_buffer_size);
-			break;
-		// Set byte_pos.
-		case 0x02:
-			byte_pos = payload[1] << 8 | payload[2];
-			break;
-		// Write data to image buffer.
-		case 0x03:
-			memcpy(image + byte_pos, payload + 1, payload_len - 1);
-			byte_pos += payload_len - 1;
-			break;
-		// Push image buffer to display.
-		case 0x04:
-			EPD_Display(image, sizeof(image));
-			break;
-		default:
-			return -1;
-	}
-
-	return 0;
-}
-
-
 // TM : to modify
 static const attribute_t my_Attributes[] = {
 	{ATT_END_H - 1, 0,0,0,0,0},	// total num of attribute
@@ -236,9 +198,9 @@ static const attribute_t my_Attributes[] = {
 	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID),	(&my_RxTx_Data), &RxTxWrite},			//value
 	{0,ATT_PERMISSIONS_RDWR,2,sizeof(RxTxValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(RxTxValueInCCC), 0},	//value
 	////////////////////////////////////// EPD_BLE ////////////////////////////////////////////////////
-	{4,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_EPD_BLE_ServiceUUID), 0},
-	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_EPD_BLECharVal),(u8*)(&my_characterUUID), (u8*)(my_EPD_BLECharVal), 0},				//prop
-	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_EPD_BLE_Data),(u8*)(&my_EPD_BLEUUID),	(&my_EPD_BLE_Data), (att_readwrite_callback_t) &epd_ble_handle_write2},			//value
+	{3,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_EPD_BLE_ServiceUUID), 0},
+	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_EPD_BLECharVal),(u8*)(&my_characterUUID), (u8*)(my_EPD_BLECharVal), 0},
+	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_EPD_BLE_Data),(u8*)(&my_EPD_BLEUUID),	(&my_EPD_BLE_Data), (att_readwrite_callback_t) &epd_ble_handle_write},
 };
 
 void my_att_init(void)
