@@ -38,7 +38,7 @@ int epd_ble_handle_write(void * p) {
 			return 0;
 		// Write data to image buffer.
 		case 0x03:
-			if (byte_pos + payload_len - 1 >= sizeof(image)) {
+			if (byte_pos + payload_len - 1 >= sizeof(image)+1) {
 				return 0;
 			}
 			memcpy(image + byte_pos, payload + 1, payload_len - 1);
