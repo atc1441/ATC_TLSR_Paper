@@ -64,7 +64,8 @@ _attribute_ram_code_ void main_loop()
     if (current_unix_time - last_update > 30)
     {
         last_update = current_unix_time;
-        epd_display(current_unix_time);
+        // Uncomment this line to periodically have the display refreshed with the current time.
+        // epd_display(current_unix_time);
     }
     if (epd_state_handler()) // if epd_update is ongoing enable gpio wakeup to put the display to sleep as fast as possible
     {

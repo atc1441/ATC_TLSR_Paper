@@ -14,10 +14,6 @@ extern const uint8_t ucMirror[];
 #include "bart_tif.h"
 #include "font_60.h"
 
-#define epd_height 128
-#define epd_width 250
-#define epd_buffer_size ((epd_height/8) * epd_width)
-
 RAM uint8_t epd_update_state = 0;
 
 uint8_t epd_buffer[epd_buffer_size];
