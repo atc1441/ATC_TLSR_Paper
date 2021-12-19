@@ -2311,11 +2311,10 @@ int i, x, y, iPitch, iSize;
 int xStart, xEnd, yStart, yEnd, yDst, xDst, dx, dy;
 uint8_t ucSrcMask, ucDstMask, *s, *d;
     
-    iPitch = pOBD->width;
-
     if (pDestination == NULL || pOBD == NULL || pOBD->ucScreen == NULL)
         return -1;
     // calculate output buffer size
+    iPitch = pOBD->width;
     if (iFlags & OBD_HORZ_BYTES) {
         if (iFlags & OBD_ROTATE_90)
             iSize = ((pOBD->height + 7)>>3) * pOBD->width;
