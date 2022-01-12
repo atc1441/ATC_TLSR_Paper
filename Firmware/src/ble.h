@@ -9,3 +9,7 @@ bool ble_get_connected();
 void ble_send_temp(uint16_t temp);
 void ble_send_battery(uint8_t value);
 void blt_pm_proc(void);
+
+int RxTxWrite(void * p);
+int otaWritePre(void * p);
+int otaReadPre(void * p);

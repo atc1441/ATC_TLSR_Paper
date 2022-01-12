@@ -45,6 +45,7 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		
 	if( deepRetWakeUp ){
 		user_init_deepRetn ();
+		printf("\r\n\r\n\r\nBooting\r\n\r\n\r\n\r\n");
 	}
 	else{
 		printf("\r\n\r\n\r\nBooting\r\n\r\n\r\n\r\n");

@@ -9,6 +9,8 @@
 #include "battery.h"
 #include "ble.h"
 #include "flash.h"
+#include "ota.h"
+#include "epd.h"
 
 RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000;
 RAM bool last_smiley;

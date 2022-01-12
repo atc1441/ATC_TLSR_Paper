@@ -37,16 +37,6 @@ RAM uint8_t	advertising_data[] = {
 };
 
 uint8_t mac_public[6];
-	
-uint8_t ota_is_working = 0;
-
-void app_enter_ota_mode(void)
-{
-	custom_bls_ota_clearNewFwDataArea(); //must
-	bls_l2cap_requestConnParamUpdate(15, 15, 0, 1000);  //1S
-	custom_bls_ota_setTimeout(5 * 1000000);
-	ota_is_working = 1;
-}
 
 void app_switch_to_indirect_adv(uint8_t e, uint8_t *p, int n)
 {
@@ -72,22 +62,13 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n)
 	printf("BLE connected\r\n");
 }
 
-extern u32 blt_ota_start_tick;
 int otaWritePre(void * p)
-{
-	blt_ota_start_tick = clock_time()|1;
-	custom_otaWrite(p);
-	return 0;
+{	
+	return custom_otaWrite(p);
 }
 int otaReadPre(void * p)
-{
-	set_led_color(2);
-	extern uint8_t my_OtaData[20];
-	my_OtaData[0]++;
-	my_OtaData[1]++;
-	my_OtaData[2]++;
-	my_OtaData[3]++;
-	return 0;
+{	
+	return custom_otaRead(p);
 }
 
 int RxTxWrite(void * p)
@@ -98,13 +79,7 @@ int RxTxWrite(void * p)
 
 _attribute_ram_code_ void blt_pm_proc(void)
 {
-	if(ota_is_working){
-		custom_bls_ota_procTimeout();
-		bls_pm_setSuspendMask(SUSPEND_DISABLE);
-		bls_pm_setManualLatency(0);
-	}else{
-		bls_pm_setSuspendMask (SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
-	}
+	bls_pm_setSuspendMask (SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
 }
 
 void init_ble(){
@@ -158,8 +133,6 @@ void init_ble(){
 	blc_pm_setDeepsleepRetentionThreshold(95, 95);
 	blc_pm_setDeepsleepRetentionEarlyWakeupTiming(240);
 	blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K);
-
-	custom_bls_ota_registerStartCmdCb(app_enter_ota_mode);	
 }
 
 bool ble_get_connected(){

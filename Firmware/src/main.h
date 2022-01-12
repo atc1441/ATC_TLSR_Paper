@@ -32,3 +32,6 @@
 #define NFC_SCL		GPIO_PC1
 #define NFC_CS		GPIO_PC6
 #define NFC_IRQ		GPIO_PC4
+
+
+

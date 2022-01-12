@@ -3,6 +3,7 @@
 #include "main.h"
 #include "stack/ble/ble.h"
 #include "epd_ble_service.h"
+#include "ble.h"
 
 typedef struct
 {
@@ -71,8 +72,8 @@ static u8 tempValueInCCC[2];
 RAM u8 my_tempVal[2] 	= {0};
 
 /////////////////////////////////////////////////////////
-static const  u8 my_OtaUUID[16]					    = TELINK_SPP_DATA_OTA;
-static const  u8 my_OtaServiceUUID[16]				= TELINK_OTA_UUID_SERVICE;
+static const  u16 my_OtaServiceUUID				= 0x221f;
+static const  u16 my_OtaUUID			    = 0x331f;
 RAM u8 my_OtaData[20];
 static const u8  my_OtaName[] = {'O', 'T', 'A'};
 
@@ -134,11 +135,10 @@ static const u8 my_tempCharVal[5] = {
 };
 
 //// OTA attribute values
-#define TELINK_SPP_DATA_OTA1 				0x12,0x2B,0x0d,0x0c,0x0b,0x0a,0x09,0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00
-static const u8 my_OtaCharVal[19] = {
+static const u8 my_OtaCharVal[5] = {
 	CHAR_PROP_READ | CHAR_PROP_WRITE,
 	U16_LO(OTA_CMD_OUT_DP_H), U16_HI(OTA_CMD_OUT_DP_H),
-	TELINK_SPP_DATA_OTA1,
+	U16_LO(0x331f), U16_HI(0x331f)
 };
 
 //// RxTx attribute values
@@ -154,10 +154,6 @@ static const u8 my_EPD_BLECharVal[19] = {
 	U16_LO(EPD_BLE_CMD_OUT_DP_H), U16_HI(EPD_BLE_CMD_OUT_DP_H),
 	EPD_BLE_CHAR_UUID,
 };
-
-extern int otaWritePre(void * p);
-extern int otaReadPre(void * p);
-extern int RxTxWrite(void * p);
 
 // TM : to modify
 static const attribute_t my_Attributes[] = {
@@ -188,10 +184,10 @@ static const attribute_t my_Attributes[] = {
 	{0,ATT_PERMISSIONS_READ,2,sizeof(my_tempVal),(u8*)(&my_tempCharUUID), 	(u8*)(my_tempVal), 0},	//value
 	{0,ATT_PERMISSIONS_RDWR,2,sizeof(tempValueInCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(tempValueInCCC), 0},	//value
 	////////////////////////////////////// OTA /////////////////////////////////////////////////////
-	// 002e - 0031
-	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_OtaServiceUUID), 0},
+	// OTA
+	{4,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_OtaServiceUUID), 0},
 	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_OtaCharVal),(u8*)(&my_characterUUID), (u8*)(my_OtaCharVal), 0},				//prop
-	{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(&my_OtaData), &otaWritePre, &otaReadPre},			//value
+	{0,ATT_PERMISSIONS_RDWR,2,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(&my_OtaData), &otaWritePre, &otaReadPre},			//value
 	{0,ATT_PERMISSIONS_READ, 2,sizeof (my_OtaName),(u8*)(&userdesc_UUID), (u8*)(my_OtaName), 0},
 	////////////////////////////////////// RxTx ////////////////////////////////////////////////////
 	// RxTx Communication
