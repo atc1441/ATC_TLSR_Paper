@@ -136,21 +136,21 @@ static const u8 my_tempCharVal[5] = {
 //// OTA attribute values
 #define TELINK_SPP_DATA_OTA1 				0x12,0x2B,0x0d,0x0c,0x0b,0x0a,0x09,0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01,0x00
 static const u8 my_OtaCharVal[19] = {
-	CHAR_PROP_READ | CHAR_PROP_WRITE_WITHOUT_RSP,
+	CHAR_PROP_READ | CHAR_PROP_WRITE,
 	U16_LO(OTA_CMD_OUT_DP_H), U16_HI(OTA_CMD_OUT_DP_H),
 	TELINK_SPP_DATA_OTA1,
 };
 
 //// RxTx attribute values
 static const u8 my_RxTxCharVal[5] = {
-	CHAR_PROP_NOTIFY | CHAR_PROP_WRITE_WITHOUT_RSP,
+	CHAR_PROP_NOTIFY | CHAR_PROP_WRITE,
 	U16_LO(RxTx_CMD_OUT_DP_H), U16_HI(RxTx_CMD_OUT_DP_H),
 	U16_LO(0x1f1f), U16_HI(0x1f1f)
 };
 
 //// EPD_BLE attribute values
 static const u8 my_EPD_BLECharVal[19] = {
-	CHAR_PROP_WRITE_WITHOUT_RSP,
+	CHAR_PROP_READ | CHAR_PROP_WRITE,
 	U16_LO(EPD_BLE_CMD_OUT_DP_H), U16_HI(EPD_BLE_CMD_OUT_DP_H),
 	EPD_BLE_CHAR_UUID,
 };
