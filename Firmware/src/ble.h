@@ -12,4 +12,3 @@ void blt_pm_proc(void);
 
 int RxTxWrite(void * p);
 int otaWritePre(void * p);
-int otaReadPre(void * p);

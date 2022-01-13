@@ -61,7 +61,7 @@ _attribute_ram_code_ void main_loop()
         last_clock_increase += CLOCK_16M_SYS_TIMER_CLK_1S;
         current_unix_time++;
     }
-    set_led_color(1);
+    set_led_color(2);
 
     if (current_unix_time - last_update > 30)
     {

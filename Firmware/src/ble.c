@@ -66,10 +66,6 @@ int otaWritePre(void * p)
 {	
 	return custom_otaWrite(p);
 }
-int otaReadPre(void * p)
-{	
-	return custom_otaRead(p);
-}
 
 int RxTxWrite(void * p)
 {

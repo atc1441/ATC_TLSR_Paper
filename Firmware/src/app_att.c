@@ -74,8 +74,8 @@ RAM u8 my_tempVal[2] 	= {0};
 /////////////////////////////////////////////////////////
 static const  u16 my_OtaServiceUUID				= 0x221f;
 static const  u16 my_OtaUUID			    = 0x331f;
-RAM u8 my_OtaData[20];
-static const u8  my_OtaName[] = {'O', 'T', 'A'};
+static u8 my_OtaData = 0x00;
+static u8  my_OtaCCC[2];
 
 // RxTx Char
 static const  u16 my_RxTxUUID				= 0x1f1f;
@@ -136,7 +136,7 @@ static const u8 my_tempCharVal[5] = {
 
 //// OTA attribute values
 static const u8 my_OtaCharVal[5] = {
-	CHAR_PROP_READ | CHAR_PROP_WRITE,
+	CHAR_PROP_NOTIFY | CHAR_PROP_WRITE,
 	U16_LO(OTA_CMD_OUT_DP_H), U16_HI(OTA_CMD_OUT_DP_H),
 	U16_LO(0x331f), U16_HI(0x331f)
 };
@@ -187,8 +187,8 @@ static const attribute_t my_Attributes[] = {
 	// OTA
 	{4,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_OtaServiceUUID), 0},
 	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_OtaCharVal),(u8*)(&my_characterUUID), (u8*)(my_OtaCharVal), 0},				//prop
-	{0,ATT_PERMISSIONS_RDWR,2,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(&my_OtaData), &otaWritePre, &otaReadPre},			//value
-	{0,ATT_PERMISSIONS_READ, 2,sizeof (my_OtaName),(u8*)(&userdesc_UUID), (u8*)(my_OtaName), 0},
+	{0,ATT_PERMISSIONS_WRITE, 2,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(&my_OtaData), &otaWritePre},			//value
+	{0,ATT_PERMISSIONS_RDWR,2,sizeof(my_OtaCCC),(u8*)(&clientCharacterCfgUUID), 	(u8*)(my_OtaCCC), 0},	//value
 	////////////////////////////////////// RxTx ////////////////////////////////////////////////////
 	// RxTx Communication
 	{4,ATT_PERMISSIONS_READ, 2,2,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_RxTx_ServiceUUID), 0},
