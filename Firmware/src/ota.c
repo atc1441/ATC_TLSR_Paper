@@ -20,6 +20,8 @@ _attribute_ram_code_ int custom_otaWrite(void *p)
 	uint8_t *payload = &req->value;
 	uint8_t data_len = req->l2capLen - 3;
 	uint32_t address = 0;
+	uint32_t read_offset = 0;
+	uint16_t crc_out = 0;
 	if (data_len >= 5)
 	{
 		address = (payload[1] << 24) | (payload[2] << 16) | (payload[3] << 8) | payload[4];
@@ -51,14 +53,14 @@ _attribute_ram_code_ int custom_otaWrite(void *p)
 		}
 		memset(ramd_to_flash_temp_buffer, 0x00, sizeof(ramd_to_flash_temp_buffer));
 		ram_position = 0;
-		//bls_att_pushNotifyData(OTA_CMD_OUT_DP_H, payload, data_len);
+		// bls_att_pushNotifyData(OTA_CMD_OUT_DP_H, payload, data_len);
 		break;
 	case 3: // write into the temporary buffer that will later be written to flash
 		if (ram_position + (data_len - 1) > 0x100)
 			return 0;
 		memcpy(&ramd_to_flash_temp_buffer[ram_position], &payload[1], (data_len - 1));
 		ram_position += (data_len - 1);
-		//bls_att_pushNotifyData(OTA_CMD_OUT_DP_H, &ram_position, sizeof(ram_position));
+		// bls_att_pushNotifyData(OTA_CMD_OUT_DP_H, &ram_position, sizeof(ram_position));
 		break;
 	case 4: // read real flash to verify
 		flash_read_page(address, sizeof(out_buffer), out_buffer);
@@ -68,8 +70,23 @@ _attribute_ram_code_ int custom_otaWrite(void *p)
 		memcpy(out_buffer, &ramd_to_flash_temp_buffer[address], sizeof(out_buffer));
 		bls_att_pushNotifyData(OTA_CMD_OUT_DP_H, out_buffer, sizeof(out_buffer));
 		break;
-	case 6: // when upload is done flash the firmware with this cmd, better do some CRC or checking before as it could brick the device
-		write_ota_firmware_to_flash();
+	case 6: // CRC Checking the uploaded part
+		for (int i = 0; i < OTA_MAX_SIZE; i += 0x100)
+		{
+			flash_read_page(OTA_BANK_START + i, sizeof(ramd_to_flash_temp_buffer), ramd_to_flash_temp_buffer);
+			for (int c = 0; c < 0x100; c++)
+			{
+				crc_out += ramd_to_flash_temp_buffer[c];// yeah thats not real CRC, but its better than nothing for now
+			}
+		}
+		out_buffer[0] = 0x07;
+		out_buffer[1] = crc_out >> 8;
+		out_buffer[2] = crc_out;
+		bls_att_pushNotifyData(OTA_CMD_OUT_DP_H, out_buffer, 3);
+		break;
+	case 7:						  // when upload is done flash the firmware with this cmd, better do some CRC or checking before as it could brick the device
+		if (address = 0xC001CEED) // Only flash if "magic word" is send
+			write_ota_firmware_to_flash();
 		break;
 	}
 
