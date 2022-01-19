@@ -11,7 +11,6 @@
 #include "TIFF_G4.h"
 extern const uint8_t ucMirror[];
 #include "Roboto_Black_80.h"
-#include "bart_tif.h"
 #include "font_60.h"
 
 RAM uint8_t epd_update_state = 0;
@@ -290,11 +289,11 @@ int x, y;
    }
 } /* TIFFDraw() */
 
-_attribute_ram_code_ void epd_display_tiff()
+_attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
 {
     // test G4 decoder
     memset(epd_buffer, 0xff, epd_buffer_size); // clear to white
-    TIFF_openRAW(&tiff, 250, 122, BITDIR_MSB_FIRST, (uint8_t *)bart_tif, sizeof(bart_tif), TIFFDraw);
+    TIFF_openRAW(&tiff, 250, 122, BITDIR_MSB_FIRST, pData, iSize, TIFFDraw);
     TIFF_setDrawParameters(&tiff, 65536, TIFF_PIXEL_1BPP, 0, 0, 250, 122, NULL);
     TIFF_decode(&tiff);
     TIFF_close(&tiff);

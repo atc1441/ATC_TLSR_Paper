@@ -11,7 +11,9 @@
 #include "flash.h"
 #include "ota.h"
 #include "epd.h"
+#include "bart_tif.h"
 
+extern uint8_t *epd_temp;
 RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000;
 RAM bool last_smiley;
 int16_t temp = 0;
@@ -34,7 +36,7 @@ void user_init_normal(void)
     init_flash();
     battery_mv = get_battery_mv();
     battery_level = get_battery_level(battery_mv);
-    epd_display_tiff();
+    epd_display_tiff((uint8_t *)bart_tif, sizeof(bart_tif));
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void)

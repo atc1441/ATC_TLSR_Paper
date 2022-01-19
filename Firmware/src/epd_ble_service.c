@@ -6,6 +6,8 @@
 
 #include "epd.h"
 
+extern uint8_t *epd_temp;
+
 #define ASSERT_MIN_LEN(val, min_len)  \
 	if (val < min_len) {		  					\
 		return 0; 												\
@@ -43,6 +45,9 @@ int epd_ble_handle_write(void * p) {
 			}
 			memcpy(image + byte_pos, payload + 1, payload_len - 1);
 			byte_pos += payload_len - 1;
+			return 0;
+		case 0x04: // decode & display a TIFF image
+			epd_display_tiff(image, byte_pos);
 			return 0;
 		default:
 			return 0;
