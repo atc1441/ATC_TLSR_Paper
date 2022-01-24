@@ -5,8 +5,13 @@
 #include "stack/ble/ble.h"
 
 #include "epd.h"
-
+#define MEMORY_ONLY
+#define _LINUX_
+#include "OneBitDisplay.h"
+extern OBDISP obd;
+extern uint8_t epd_buffer[];
 extern uint8_t *epd_temp;
+extern void FixBuffer(uint8_t *pSrc, uint8_t *pDst);
 
 #define ASSERT_MIN_LEN(val, min_len)  \
 	if (val < min_len) {		  					\
@@ -48,6 +53,9 @@ int epd_ble_handle_write(void * p) {
 			return 0;
 		case 0x04: // decode & display a TIFF image
 			epd_display_tiff(image, byte_pos);
+			return 0;
+		case 0x06: // decode the memory as OBD commands
+			epd_display_cmds(image, byte_pos);
 			return 0;
 		default:
 			return 0;

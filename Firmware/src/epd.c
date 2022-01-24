@@ -6,7 +6,8 @@
 #include "stack/ble/ble.h"
 
 #include "battery.h"
-
+#define MEMORY_ONLY
+#define _LINUX_
 #include "OneBitDisplay.h"
 #include "TIFF_G4.h"
 extern const uint8_t ucMirror[];
@@ -288,6 +289,15 @@ int x, y;
       ucSrcMask >>= 1;
    }
 } /* TIFFDraw() */
+
+_attribute_ram_code_ void epd_display_cmds(uint8_t *pData, int iSize)
+{
+    obdCreateVirtualDisplay(&obd, 250, 122, epd_temp);
+    obdExecCommands(pData, iSize, &obd, 0);
+    FixBuffer(epd_temp, epd_buffer);
+    EPD_Display(epd_buffer, epd_buffer_size);
+
+} /* epd_display_cmds() */
 
 _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
 {

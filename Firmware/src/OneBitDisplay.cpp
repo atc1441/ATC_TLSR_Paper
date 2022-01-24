@@ -17,8 +17,16 @@
 #ifdef _LINUX_
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
+#ifndef MEMORY_ONLY
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h>
+#include <math.h>
+#include <armbianio.h>
+#endif // MEMORY_ONLY
 // convert wire library constants into ArmbianIO values
 #define OUTPUT GPIO_OUT
 #define INPUT GPIO_IN
@@ -38,6 +46,97 @@ void delay(int);
 #include "OneBitDisplay.h"
 // All of the drawing code is in here
 #include "obd.inl"
+
+// EPD look up tables
+// new waveform created by Jean-Marc Zingg for the actual panel
+#define T1 25 // color change charge balance pre-phase
+#define T2  1 // color change or sustain charge balance pre-phase
+#define T3  2 // color change or sustain phase
+#define T4 25 // color change phase
+
+const unsigned char lut_20_vcom0_partial[] PROGMEM =
+{
+  0x00, T1, T2, T3, T4, 1, // 00 00 00 00
+  0x00,  1,  0,  0,  0, 1, // gnd phase
+};
+
+const unsigned char lut_21_ww_partial[] PROGMEM =
+{ // 10 w
+  0x18, T1, T2, T3, T4, 1, // 00 01 10 00
+  0x00,  1,  0,  0,  0, 1, // gnd phase
+};
+
+const unsigned char lut_22_bw_partial[] PROGMEM =
+{ // 10 w
+  0x5A, T1, T2, T3, T4, 1, // 01 01 10 10
+  0x00,  1,  0,  0,  0, 1, // gnd phase
+};
+
+const unsigned char lut_23_wb_partial[] PROGMEM =
+{ // 01 b
+  0xA5, T1, T2, T3, T4, 1, // 10 10 01 01
+  0x00,  1,  0,  0,  0, 1, // gnd phase
+};
+
+const unsigned char lut_24_bb_partial[] PROGMEM =
+{ // 01 b
+  0x24, T1, T2, T3, T4, 1, // 00 10 01 00
+  0x00,  1,  0,  0,  0, 1, // gnd phase
+};
+
+const unsigned char lut_vcom0_full[] =
+{
+  0x40, 0x17, 0x00, 0x00, 0x00, 0x02,
+  0x00, 0x17, 0x17, 0x00, 0x00, 0x02,
+  0x00, 0x0A, 0x01, 0x00, 0x00, 0x01,
+  0x00, 0x0E, 0x0E, 0x00, 0x00, 0x02,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
+const unsigned char lut_ww_full[] =
+{
+  0x40, 0x17, 0x00, 0x00, 0x00, 0x02,
+  0x90, 0x17, 0x17, 0x00, 0x00, 0x02,
+  0x40, 0x0A, 0x01, 0x00, 0x00, 0x01,
+  0xA0, 0x0E, 0x0E, 0x00, 0x00, 0x02,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
+const unsigned char lut_bw_full[] =
+{
+  0x40, 0x17, 0x00, 0x00, 0x00, 0x02,
+  0x90, 0x17, 0x17, 0x00, 0x00, 0x02,
+  0x40, 0x0A, 0x01, 0x00, 0x00, 0x01,
+  0xA0, 0x0E, 0x0E, 0x00, 0x00, 0x02,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+const unsigned char lut_wb_full[] =
+{
+  0x80, 0x17, 0x00, 0x00, 0x00, 0x02,
+  0x90, 0x17, 0x17, 0x00, 0x00, 0x02,
+  0x80, 0x0A, 0x01, 0x00, 0x00, 0x01,
+  0x50, 0x0E, 0x0E, 0x00, 0x00, 0x02,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
+const unsigned char lut_bb_full[] =
+{
+  0x80, 0x17, 0x00, 0x00, 0x00, 0x02,
+  0x90, 0x17, 0x17, 0x00, 0x00, 0x02,
+  0x80, 0x0A, 0x01, 0x00, 0x00, 0x01,
+  0x50, 0x0E, 0x0E, 0x00, 0x00, 0x02,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
 
 // Initialization sequences
 const unsigned char oled128_initbuf[] PROGMEM = {0x00, 0xae,0xdc,0x00,0x81,0x40,
@@ -196,6 +295,43 @@ void obdBacklight(OBDISP *pOBD, int bOn)
 // Send the command sequence to power up the LCDs
 static void LCDPowerUp(OBDISP *pOBD)
 {
+#ifndef MEMORY_ONLY
+    int iLen;
+    uint8_t *s, uc[32];
+    obdSetDCMode(pOBD, MODE_COMMAND);
+    digitalWrite(pOBD->iCSPin, LOW);
+    if (pOBD->type == LCD_UC1701 || pOBD->type == LCD_UC1609)
+    {
+        s = (uint8_t *)uc1701_initbuf;
+        iLen = sizeof(uc1701_initbuf);
+    }
+    else if (pOBD->type == LCD_HX1230)
+    {
+        s = (uint8_t *)hx1230_initbuf;
+        iLen = sizeof(hx1230_initbuf);
+    }
+    else // Nokia 5110
+    {
+        s = (uint8_t *)nokia5110_initbuf;
+        iLen = sizeof(nokia5110_initbuf);
+    }
+    memcpy_P(uc, s, iLen);
+#ifdef _LINUX_
+    AIOWriteSPI(pOBD->bbi2c.file_i2c, uc, iLen);    
+#else
+    if (pOBD->iMOSIPin == 0xff)
+       SPI.transfer(uc, iLen);
+    else
+       SPI_BitBang(pOBD, uc, iLen, pOBD->iMOSIPin, pOBD->iCLKPin);
+#endif
+    delay(100);
+    obdWriteCommand(pOBD, 0xa5);
+    delay(100);
+    obdWriteCommand(pOBD, 0xa4);
+    obdWriteCommand(pOBD, 0xaf);
+    digitalWrite(pOBD->iCSPin, HIGH);
+    obdSetDCMode(pOBD, MODE_DATA);
+#endif // MEMORY_ONLY
 } /* LCDPowerUp() */
 
 //
@@ -203,6 +339,220 @@ static void LCDPowerUp(OBDISP *pOBD)
 //
 void obdSPIInit(OBDISP *pOBD, int iType, int iDC, int iCS, int iReset, int iMOSI, int iCLK, int iLED, int bFlip, int bInvert, int bBitBang, int32_t iSpeed)
 {
+#ifndef MEMORY_ONLY
+uint8_t uc[32], *s;
+int iLen;
+
+  pOBD->ucScreen = NULL; // start with no backbuffer; user must provide one later
+  pOBD->iDCPin = iDC;
+  pOBD->iCSPin = iCS;
+  pOBD->iRSTPin = iReset;
+  pOBD->iMOSIPin = iMOSI;
+  pOBD->iCLKPin = iCLK;
+  pOBD->iLEDPin = iLED;
+  pOBD->type = iType;
+  pOBD->flip = bFlip;
+  pOBD->invert = bInvert;
+  pOBD->wrap = 0; // default - disable text wrap
+  pOBD->com_mode = COM_SPI; // communication mode
+  if (pOBD->iDCPin != 0xff) // Note - not needed on Sharp Memory LCDs
+  {
+      pinMode(pOBD->iDCPin, OUTPUT);
+      digitalWrite(pOBD->iDCPin, 0); // for some reason, command mode must be set or some OLEDs/LCDs won't initialize correctly even if set later
+  }
+  pinMode(pOBD->iCSPin, OUTPUT);
+  digitalWrite(pOBD->iCSPin, 0); //(pOBD->type < SHARP_144x168)); // set to not-active
+  if (bBitBang)
+  {
+      pinMode(iMOSI, OUTPUT);
+      pinMode(iCLK, OUTPUT);
+  }
+
+  // Reset it
+  if (iReset != -1)
+  {
+    pinMode(iReset, OUTPUT);
+    digitalWrite(iReset, HIGH);
+    delay(100);
+    digitalWrite(iReset, LOW);
+    delay(10);
+    digitalWrite(iReset, HIGH);
+    delay(100);
+  }
+  if (iLED != -1)
+  {
+      if (iType >= EPD42_400x300) // for EPD displays, LED = BUSY
+         pinMode(iLED, INPUT);
+      else
+         pinMode(iLED, OUTPUT);
+  }
+// Initialize SPI
+    if (!bBitBang) {
+        pOBD->iMOSIPin = 0xff; // mark it as hardware SPI
+#ifdef _LINUX_
+	pOBD->bbi2c.file_i2c = AIOOpenSPI(SPI_BUS_NUMBER, iSpeed);
+#else
+        SPI.begin();
+        SPI.beginTransaction(SPISettings(iSpeed, MSBFIRST, SPI_MODE0));
+#endif
+	//  SPI.setClockDivider(16);
+       //  SPI.setBitOrder(MSBFIRST);
+        //  SPI.setDataMode(SPI_MODE0);
+    }
+
+  pOBD->width = 128; // assume 128x64
+  pOBD->height = 64;
+  if (iType == SHARP_144x168)
+  {
+      pOBD->width = 144;
+      pOBD->height = 168;
+      pOBD->iDCPin = 0xff; // no D/C wire on this display
+  }
+  else if (iType == SHARP_400x240)
+  {
+      pOBD->width = 400;
+      pOBD->height = 240;
+      pOBD->iDCPin = 0xff; // no D/C wire on this display
+  }
+  else if (iType == EPD42_400x300)
+  {
+      pOBD->width = 400;
+      pOBD->height = 300;
+      return; // nothing else to do yet
+  }
+  else if (iType == LCD_UC1609)
+  {
+      pOBD->width = 192;
+      pOBD->height = 64;
+  }
+  else if (iType == LCD_HX1230)
+  {
+      pOBD->width = 96;
+      pOBD->height = 68;
+      pOBD->iDCPin = 0xff; // flag this as being 3-wire SPI
+  }
+  else if (iType == LCD_NOKIA5110)
+  {
+      pOBD->width = 84;
+      pOBD->height = 48;
+  }
+  else if (iType == OLED_96x16)
+  {
+    pOBD->width = 96;
+    pOBD->height = 16;
+  }
+  else if (iType == OLED_64x128)
+  {
+    pOBD->width = 64;
+    pOBD->height = 128;
+  }
+  else if (iType == OLED_128x32)
+    pOBD->height = 32;
+  else if (iType == OLED_128x128)
+    pOBD->height = 128;
+  else if (iType == OLED_64x32)
+  {
+    pOBD->width = 64;
+    pOBD->height = 32;
+  }
+  else if (iType == OLED_72x40)
+  {
+    pOBD->width = 72;
+    pOBD->height = 40;
+  }
+  if (iType == OLED_128x32 || iType == OLED_96x16)
+  {
+     s = (uint8_t *)oled32_initbuf;
+     iLen = sizeof(oled32_initbuf);
+  }
+  else if (iType == OLED_64x128)
+  {
+     s = (uint8_t *)oled64x128_initbuf;
+     iLen = sizeof(oled64x128_initbuf);
+  }
+  else if (iType == OLED_128x128)
+  {
+     s = (uint8_t *)oled128_initbuf;
+     iLen = sizeof(oled128_initbuf);
+  }
+  else if (iType == OLED_132x64) { // SH1106
+     s = (uint8_t *)oled132_initbuf;
+     iLen = sizeof(oled132_initbuf);
+  }
+  else if (iType < LCD_UC1701) // 128x64 and 64x32
+  {
+     s = (uint8_t *)oled64_initbuf;
+     iLen = sizeof(oled64_initbuf);
+  }
+    // OLED
+  if (iType < LCD_UC1701)
+  {
+      memcpy_P(uc, s, iLen); // do it from RAM
+      _I2CWrite(pOBD, uc, iLen);
+      delay(100); // on SPI display this delay is needed or the display
+      // never sees the "display on" command at the end of the sequence
+      obdWriteCommand(pOBD, 0xaf); // turn on display
+      if (bInvert)
+      {
+        uc[0] = 0; // command
+        uc[1] = 0xa7; // invert command
+        _I2CWrite(pOBD, uc, 2);
+      }
+      if (bFlip) // rotate display 180
+      {
+        uc[0] = 0; // command
+        uc[1] = 0xa0;
+        _I2CWrite(pOBD, uc, 2);
+        uc[0] = 0;
+        uc[1] = 0xc0;
+        _I2CWrite(pOBD, uc, 2);
+      }
+  } // OLED
+  if (iType == LCD_UC1701 || iType == LCD_HX1230)
+  {
+      uint8_t cCOM = 0xc0;
+      
+      LCDPowerUp(pOBD);
+      if (iType == LCD_HX1230)
+      {
+          obdSetContrast(pOBD, 0); // contrast of 0 looks good
+          cCOM = 0xc8;
+      }
+      if (bFlip) // flip horizontal + vertical
+      {
+         obdWriteCommand(pOBD, 0xa1); // set SEG direction (A1 to flip horizontal)
+         obdWriteCommand(pOBD, cCOM); // set COM direction (C0 to flip vert)
+      }
+      if (bInvert)
+      {
+         obdWriteCommand(pOBD, 0xa7); // set inverted pixel mode
+      }
+  }
+  if (iType == LCD_UC1609)
+  {
+      LCDPowerUp(pOBD);
+      return;
+      obdWriteCommand(pOBD, 0xe2); // system reset
+      delay(100);
+      obdWriteCommand(pOBD, 0xa0); // set frame rate to 76fps
+      obdWriteCommand(pOBD, 0xeb); // set BR
+      obdWriteCommand(pOBD, 0x2f); // set Power Control
+      obdWriteCommand(pOBD, 0xc4); // set LCD mapping control
+      obdWriteCommand(pOBD, 0x81); // set PM
+      obdWriteCommand(pOBD, 0x90); // set contrast to 144
+      delay(100);
+      obdWriteCommand(pOBD, 0xaf); // display enable
+      if (bFlip) // flip horizontal + vertical
+      {  
+         obdWriteCommand(pOBD, 0xa1); // set SEG direction (A1 to flip horizontal)       
+         obdWriteCommand(pOBD, 0xc2); // set COM direction (C0 to flip vert)
+      }
+      if (bInvert)
+      {
+         obdWriteCommand(pOBD, 0xa7); // set inverted pixel mode
+      }
+  } // UC1609
+#endif // MEMORY_ONLY
 } /* obdSPIInit() */
 //
 // Set the memory configuration to display the pixels at 0 or 180 degrees (flipped)
@@ -238,7 +588,147 @@ void obdSetFlip(OBDISP *pOBD, int iOnOff)
 //
 int obdI2CInit(OBDISP *pOBD, int iType, int iAddr, int bFlip, int bInvert, int bWire, int sda, int scl, int reset, int32_t iSpeed)
 {
-	return 0;
+int rc = OLED_NOT_FOUND;
+#ifndef MEMORY_ONLY
+unsigned char uc[32];
+uint8_t u8Len, *s;
+
+  pOBD->ucScreen = NULL; // reset backbuffer; user must provide one later
+  pOBD->type = iType;
+  pOBD->flip = bFlip;
+  pOBD->invert = bInvert;
+  pOBD->wrap = 0; // default - disable text wrap
+  pOBD->bbi2c.iSDA = sda;
+  pOBD->bbi2c.iSCL = scl;
+  pOBD->bbi2c.bWire = bWire;
+  pOBD->com_mode = COM_I2C; // communication mode
+
+  I2CInit(&pOBD->bbi2c, iSpeed); // on Linux, SDA = bus number, SCL = device address
+#ifdef _LINUX_
+  pOBD->oled_addr = (uint8_t)scl;
+#else
+  // Reset it
+  if (reset != -1)
+  {
+    pinMode(reset, OUTPUT);
+    digitalWrite(reset, HIGH);
+    delay(50);
+    digitalWrite(reset, LOW);
+    delay(50);
+    digitalWrite(reset, HIGH);
+    delay(10);
+  }
+  // find the device address if requested
+  if (iAddr == -1 || iAddr == 0 || iAddr == 0xff) // find it
+  {
+    I2CTest(&pOBD->bbi2c, 0x3c);
+    if (I2CTest(&pOBD->bbi2c, 0x3c))
+       pOBD->oled_addr = 0x3c;
+    else if (I2CTest(&pOBD->bbi2c, 0x3d))
+       pOBD->oled_addr = 0x3d;
+    else
+       return rc; // no display found!
+  }
+  else
+  {
+    pOBD->oled_addr = iAddr;
+    I2CTest(&pOBD->bbi2c, iAddr);
+    if (!I2CTest(&pOBD->bbi2c, iAddr))
+       return rc; // no display found
+  }
+#endif
+  // Detect the display controller (SSD1306, SH1107 or SH1106)
+  uint8_t u = 0;
+  I2CReadRegister(&pOBD->bbi2c, pOBD->oled_addr, 0x00, &u, 1); // read the status register
+  u &= 0x0f; // mask off power on/off bit
+  if ((u == 0x7 || u == 0xf) && pOBD->type == OLED_128x128) // SH1107
+  { // A single SSD1306 display returned 7, so only act on it if the
+    // user specified that they're working with a 128x128 display
+    rc = OLED_SH1107_3C;
+    bFlip = !bFlip; // SH1107 seems to have this reversed from the usual direction
+  }
+  else if (u == 0x8) // SH1106
+  {
+    rc = OLED_SH1106_3C;
+    pOBD->type = OLED_132x64; // needs to be treated a little differently
+  }
+  else if (u == 3 || u == 6 || u == 7) // 7=128x64(rare),6=128x64 display, 3=smaller
+  {
+    rc = OLED_SSD1306_3C;
+  }
+  if (pOBD->oled_addr == 0x3d)
+     rc++; // return the '3D' version of the type
+
+  if (iType == OLED_128x32 || iType == OLED_96x16)
+  {
+      s = (uint8_t *)oled32_initbuf;
+      u8Len = sizeof(oled32_initbuf);
+  }
+  else if (iType == OLED_128x128)
+  {
+      s = (uint8_t *)oled128_initbuf;
+      u8Len = sizeof(oled128_initbuf);
+  }
+  else if (iType == OLED_72x40)
+  {
+      s = (uint8_t *)oled72_initbuf;
+      u8Len = sizeof(oled72_initbuf);
+  }
+  else if (iType == OLED_64x128)
+  {
+      s = (uint8_t *)oled64x128_initbuf;
+      u8Len = sizeof(oled64x128_initbuf);
+  }
+  else // 132x64, 128x64 and 64x32
+  {
+      s = (uint8_t *)oled64_initbuf;
+      u8Len = sizeof(oled64_initbuf);
+  }
+
+    memcpy_P(uc, s, u8Len);
+  _I2CWrite(pOBD, uc, u8Len);
+  if (bInvert)
+  {
+    uc[0] = 0; // command
+    uc[1] = 0xa7; // invert command
+    _I2CWrite(pOBD,uc, 2);
+  }
+  if (bFlip) // rotate display 180
+  {
+    uc[0] = 0; // command
+    uc[1] = 0xa0;
+    _I2CWrite(pOBD,uc, 2);
+    uc[1] = 0xc0;
+    _I2CWrite(pOBD,uc, 2);
+  }
+  pOBD->width = 128; // assume 128x64
+  pOBD->height = 64;
+  if (iType == OLED_96x16)
+  {
+    pOBD->width = 96;
+    pOBD->height = 16;
+  }
+  else if (iType == OLED_64x128)
+  {
+    pOBD->width = 64;
+    pOBD->height = 128;
+  }
+  else if (iType == OLED_128x32)
+    pOBD->height = 32;
+  else if (iType == OLED_128x128)
+    pOBD->height = 128;
+  else if (iType == OLED_64x32)
+  {
+    pOBD->width = 64;
+    pOBD->height = 32;
+  }
+  else if (iType == OLED_72x40)
+  {
+    pOBD->width = 72;
+    pOBD->height = 40;
+  }
+#endif // MEMORY_ONLY
+  return rc;
 } /* obdInit() */
 //
 // Sends a command to turn on or off the OLED display
@@ -254,11 +744,11 @@ void oledPower(OBDISP *pOBD, uint8_t bOn)
 #ifdef _LINUX_
 void delay(int iDelay)
 {
-//	usleep(iDelay * 1000);
+	usleep(iDelay * 1000);
 } /* delay() */
 void delayMicroseconds(int iDelay)
 {
-	//usleep(iDelay);
+	usleep(iDelay);
 } /* delayMicroseconds() */
 #endif // _LINUX_
 //
@@ -394,6 +884,320 @@ void obdSetContrast(OBDISP *pOBD, unsigned char ucContrast)
   else // OLEDs + UC1701
       obdWriteCommand2(pOBD, 0x81, ucContrast);
 } /* obdSetContrast() */
+// DEBUG - try 5000ms for now
+#define EPD_BUSY_TIMEOUT 5000
+
+static void EPDWaitBusy(OBDISP *pOBD)
+{
+#ifndef MEMORY_ONLY
+int iTimeout = 0;
+
+  while (1) {
+     if (digitalRead(pOBD->iLEDPin) == HIGH)
+         break;
+     iTimeout += 10;
+     if (iTimeout > EPD_BUSY_TIMEOUT)
+         break; // DEBUG - timeout
+     delay(10);
+  }
+#endif // MEMORY_ONLY
+} /* EPDWaitBusy() */
+
+//
+// Init a full display update
+//
+static void EPDInitFullUpdate(OBDISP *pOBD)
+{
+uint8_t ucTemp[64];
+
+  ucTemp[0] = 0x40; // data mode
+  obdWriteCommand(pOBD, 0x00);
+  ucTemp[1] = 0x3F; //300x400 B/W mode, LUT set by register
+  _I2CWrite(pOBD, ucTemp, 2);
+  obdWriteCommand(pOBD, 0x20); //vcom
+  memcpy(&ucTemp[1], lut_vcom0_full, sizeof(lut_vcom0_full));
+  _I2CWrite(pOBD, ucTemp, sizeof(lut_vcom0_full) + 1);
+  obdWriteCommand(pOBD, 0x21); //ww --
+  memcpy(&ucTemp[1], lut_ww_full, sizeof(lut_ww_full));
+  _I2CWrite(pOBD, ucTemp, sizeof(lut_ww_full) + 1);
+  obdWriteCommand(pOBD, 0x22); //bw r
+  memcpy(&ucTemp[1], lut_bw_full, sizeof(lut_bw_full));
+  _I2CWrite(pOBD, ucTemp, sizeof(lut_bw_full) + 1);
+  obdWriteCommand(pOBD, 0x23); //wb w
+  memcpy(&ucTemp[1], lut_wb_full, sizeof(lut_wb_full));
+  _I2CWrite(pOBD, ucTemp, sizeof(lut_wb_full) + 1);
+  obdWriteCommand(pOBD, 0x24); //bb b
+  memcpy(&ucTemp[1], lut_bb_full, sizeof(lut_bb_full));
+  _I2CWrite(pOBD, ucTemp, sizeof(lut_bb_full) + 1);
+
+} /* EPDInitFullUpdate() */
+
+//
+// Wake up the EPD controller
+//
+static void EPDWakeUp(OBDISP *pOBD)
+{
+uint8_t ucTemp[8];
+
+  ucTemp[0] = 0x40; // tell I2CWrite that it's a data write, not command
+  if (pOBD->iRSTPin != -1)
+  {
+    digitalWrite(pOBD->iRSTPin, LOW);
+    delay(10);
+    digitalWrite(pOBD->iRSTPin, HIGH);
+    delay(10);
+  }
+  obdWriteCommand(pOBD, 0x01); // POWER SETTING
+  ucTemp[1] = 0x03;   // VDS_EN, VDG_EN internal
+  ucTemp[2] = 0x00;   // VCOM_HV, VGHL_LV=16V
+  ucTemp[3] = 0x2b;   // VDH=11V
+  ucTemp[4] = 0x2b;   // VDL=11V
+  ucTemp[5] = 0xff;   // VDHR
+  _I2CWrite(pOBD, ucTemp, 6);
+  obdWriteCommand(pOBD, 0x06); // boost soft start
+  ucTemp[1] = 0x17;   // A
+  ucTemp[2] = 0x17;   // B
+  ucTemp[3] = 0x17;   // C
+  _I2CWrite(pOBD, ucTemp, 4);
+  obdWriteCommand(pOBD, 0x00); // panel setting
+  ucTemp[1] = 0x3f;
+  _I2CWrite(pOBD, ucTemp, 2);  // 300x400 B/W mode, LUT set by register
+  obdWriteCommand(pOBD, 0x30); // PLL setting
+  ucTemp[1] = 0x3a; // 3a 100HZ   29 150Hz 39 200HZ 31 171HZ
+  _I2CWrite(pOBD, ucTemp, 2);
+  obdWriteCommand(pOBD, 0x61); // resolution setting
+  ucTemp[1] = (uint8_t)(pOBD->width >> 8);
+  ucTemp[2] = (uint8_t)(pOBD->width);
+  ucTemp[3] = (uint8_t)(pOBD->height >> 8);
+  ucTemp[4] = (uint8_t)(pOBD->height);
+  _I2CWrite(pOBD, ucTemp, 5);
+  obdWriteCommand(pOBD, 0x82); // vcom_DC setting
+  //IO.writeDataTransaction(0x08);   // -0.1 + 8 * -0.05 = -0.5V from demo
+  ucTemp[1] = 0x12;   // -0.1 + 18 * -0.05 = -1.0V from OTP, slightly better
+  _I2CWrite(pOBD, ucTemp, 2);
+  //IO.writeDataTransaction(0x1c);   // -0.1 + 28 * -0.05 = -1.5V test, worse
+  obdWriteCommand(pOBD, 0x50); // VCOM AND DATA INTERVAL SETTING
+  //IO.writeDataTransaction(0x97);    // WBmode:VBDF 17|D7 VBDW 97 VBDB 57   WBRmode:VBDF F7 VBDW 77 VBDB 37  VBDR B7
+  ucTemp[1] = 0xd7;  // border floating to avoid flashing
+  _I2CWrite(pOBD, ucTemp, 2);
+  obdWriteCommand(pOBD, 0x04);
+  EPDWaitBusy(pOBD); // power on  
+  EPDInitFullUpdate(pOBD);
+
+} /* EPDWakeUp() */
+
+static void EPDSleep(OBDISP *pOBD)
+{
+uint8_t ucTemp[4];
+
+  ucTemp[0] = 0x40;
+  obdWriteCommand(pOBD, 0x50); // border floating
+  ucTemp[1] = 0x17; // power off
+  _I2CWrite(pOBD, ucTemp, 2);
+  obdWriteCommand(pOBD, 0x02); // power off
+  EPDWaitBusy(pOBD);
+  if (pOBD->iRSTPin != -1)
+  {
+    obdWriteCommand(pOBD, 0x07); // deep sleep
+    ucTemp[1] = 0xa5;
+    _I2CWrite(pOBD, ucTemp, 2);
+  }
+
+} /* EPDSleep() */
+
+void EPDInitPartialUpdate(OBDISP *pOBD)
+{
+uint8_t ucTemp[64];
+
+  memset(&ucTemp[1], 0, sizeof(ucTemp)-1); // tables need to be 44/42 bytes, so fill unused parts with 0
+  ucTemp[0] = 0x40; // data mode
+  obdWriteCommand(pOBD, 0x00);
+  ucTemp[1] = 0x3F; //300x400 B/W mode, LUT set by register
+  _I2CWrite(pOBD, ucTemp, 2);
+  obdWriteCommand(pOBD, 0x20); //vcom
+  memcpy(&ucTemp[1], lut_20_vcom0_partial, sizeof(lut_20_vcom0_partial));
+  _I2CWrite(pOBD, ucTemp, 45);
+  obdWriteCommand(pOBD, 0x21); //ww --
+  memset(&ucTemp[1], 0, sizeof(ucTemp)-1);
+  memcpy(&ucTemp[1], lut_21_ww_partial, sizeof(lut_21_ww_partial));
+  _I2CWrite(pOBD, ucTemp, 43);
+  obdWriteCommand(pOBD, 0x22); //bw r
+  memset(&ucTemp[1], 0, sizeof(ucTemp)-1);
+  memcpy(&ucTemp[1], lut_22_bw_partial, sizeof(lut_22_bw_partial));
+  _I2CWrite(pOBD, ucTemp, 43);
+  obdWriteCommand(pOBD, 0x23); //wb w
+  memset(&ucTemp[1], 0, sizeof(ucTemp)-1);
+  memcpy(&ucTemp[1], lut_23_wb_partial, sizeof(lut_23_wb_partial));
+  _I2CWrite(pOBD, ucTemp, 43);
+  obdWriteCommand(pOBD, 0x24); //bb b
+  memset(&ucTemp[1], 0, sizeof(ucTemp)-1);
+  memcpy(&ucTemp[1], lut_24_bb_partial, sizeof(lut_24_bb_partial));
+  _I2CWrite(pOBD, ucTemp, 43);
+} /* EPDInitPartialUpdate() */
+//
+// Set the boundaries of the partial update area
+// start/end x/y
+//
+void EPDSetPartialArea(OBDISP *pOBD, int sx, int sy, int ex, int ey)
+{
+uint8_t ucTemp[12];
+
+  ucTemp[0] = 0x40; // data operation
+  sx &= 0xFFF8; // byte boundary
+  ex = (ex - 1) | 0x7; // byte boundary - 1
+  obdWriteCommand(pOBD, 0x90); // partial window
+  ucTemp[1] = (uint8_t)(sx / 256);
+  ucTemp[2] = (uint8_t)(sx & 256);
+  ucTemp[3] = (uint8_t)(ex / 256);
+  ucTemp[4] = (uint8_t)(ex & 256);
+  ucTemp[5] = (uint8_t)(sy / 256);
+  ucTemp[6] = (uint8_t)(sy & 256);
+  ucTemp[7] = (uint8_t)(ey / 256);
+  ucTemp[8] = (uint8_t)(ey & 256);
+  ucTemp[9] = 0x01; // gates scan inside and outside the partial area (don't see any difference)
+  _I2CWrite(pOBD, ucTemp, 10);
+  delay(2);
+  //IO.writeDataTransaction(0x00); // don't see any difference
+  //return (7 + xe - x) / 8; // number of bytes to transfer
+} /* EPDSetPartialArea() */
+//
+// Special case for e-ink displays
+//
+static void EPDDumpPartial(OBDISP *pOBD, uint8_t *pBuffer, int x, int y, int cx, int cy)
+{
+uint8_t ucLine[52];
+int tx, ty;
+uint8_t *s, *d, ucSrcMask, ucDstMask, uc;
+
+   if (pBuffer == NULL)
+      pBuffer = pOBD->ucScreen;
+
+   x &= 0xfff8; // must start on a byte boundary
+   cx = (cx+7) & 0xfff8; // must be whole bytes
+   EPDWakeUp(pOBD);
+   EPDInitPartialUpdate(pOBD);
+
+#ifdef EXPERIMENT
+// DEBUG - erase both RAM areas and refresh first
+   obdWriteCommand(pOBD, 0x91); // partial in
+   EPDSetPartialArea(pOBD, 0, 0, 399, 299);
+   obdWriteCommand(pOBD, 0x13); // write white data
+   ucLine[0] = 0x40; // data
+   memset(&ucLine[1], 0xff, 50);
+   for (ty=0; ty<400; ty++) {
+      _I2CWrite(pOBD, ucLine, 51);
+   }
+   obdWriteCommand(pOBD, 0x10); // write "old" RAM area to same color
+   for (ty=0; ty<400; ty++) {
+      _I2CWrite(pOBD, ucLine, 51);
+   }
+   obdWriteCommand(pOBD, 0x12); // refresh
+   EPDWaitBusy(pOBD);
+   obdWriteCommand(pOBD, 0x92); // partial out
+
+// end of experiment
+#endif
+
+   obdWriteCommand(pOBD, 0x91); // partial in
+   EPDSetPartialArea(pOBD, x, y, x+cx-1, y+cy-1);
+   obdWriteCommand(pOBD, 0x13); // write image data
+   // Convert the bit direction and write the data to the EPD
+   ucLine[0] = 0x40;
+   for (ty=y; ty<y+cy; ty++) {
+     ucSrcMask = 1 << (ty & 7);
+     ucDstMask = 0x80;
+     uc = 0xff;
+     d = &ucLine[1];
+     s = &pBuffer[(ty >> 3) * pOBD->width];
+     for (tx=x; tx<x+cx; tx++) {
+        if (s[tx] & ucSrcMask) // src pixel set
+           uc &= ~ucDstMask;
+        ucDstMask >>= 1;
+        if (ucDstMask == 0) { // completed byte
+           *d++ = uc;
+           uc = 0xff;
+           ucDstMask = 0x80;
+        }
+     } // for tx
+     // this code assumes I2C, so the first byte sets the D/C mode
+     _I2CWrite(pOBD, ucLine, 51);
+   } // for ty
+   delay(2);
+   obdWriteCommand(pOBD, 0x92); // partial out
+   obdWriteCommand(pOBD, 0x12); // display refresh
+   EPDWaitBusy(pOBD);
+
+// do it again
+   obdWriteCommand(pOBD, 0x91); // partial in
+   EPDSetPartialArea(pOBD, x, y, x+cx-1, y+cy-1);
+   obdWriteCommand(pOBD, 0x13); // write image data
+   // Convert the bit direction and write the data to the EPD
+   ucLine[0] = 0x40;
+   for (ty=y; ty<y+cy; ty++) {
+     ucSrcMask = 1 << (ty & 7);
+     ucDstMask = 0x80;
+     uc = 0;
+     d = &ucLine[1];
+     s = &pBuffer[(ty >> 3) * pOBD->width];
+     for (tx=x; tx<x+cx; tx++) {
+        if (s[tx] & ucSrcMask) // src pixel set
+           uc |= ucDstMask;
+        ucDstMask >>= 1;
+        if (ucDstMask == 0) { // completed byte
+           *d++ = uc;
+           uc = 0xff;
+           ucDstMask = 0x80;
+        }
+     } // for tx
+     // this code assumes I2C, so the first byte sets the D/C mode
+     _I2CWrite(pOBD, ucLine, 51);
+   } // for ty
+   obdWriteCommand(pOBD, 0x92); // partial out
+   obdWriteCommand(pOBD, 0x12); // display refresh
+   EPDWaitBusy(pOBD);
+
+   EPDSleep(pOBD);
+} /* EPDDumpPartial() */
+
+//
+// Special case for e-ink displays
+//
+static void EPDDumpBuffer(OBDISP *pOBD, uint8_t *pBuffer)
+{
+uint8_t ucLine[52]; // send the data one line at a time
+int x, y;
+uint8_t *s, *d, ucSrcMask, ucDstMask, uc;
+
+  if (pBuffer == NULL)
+     pBuffer = pOBD->ucScreen;
+
+  EPDWakeUp(pOBD);
+  obdWriteCommand(pOBD, 0x13); // send buffer
+  ucLine[0] = 0x40; // tell _I2CWrite that it's data
+  // Convert the bit direction and write the data to the EPD
+  for (y=0; y<pOBD->height; y++) {
+     ucSrcMask = 1 << (y & 7);
+     ucDstMask = 0x80;
+     uc = 0xff;
+     d = &ucLine[1];
+     s = &pBuffer[(y >> 3) * pOBD->width];
+     for (x=0; x<pOBD->width; x++) {
+        if (s[x] & ucSrcMask) // src pixel set
+           uc &= ~ucDstMask;
+        ucDstMask >>= 1;
+        if (ucDstMask == 0) { // completed byte
+           *d++ = uc;
+           uc = 0xff;
+           ucDstMask = 0x80;
+        }
+     } // for x
+     // this code assumes I2C, so the first byte sets the D/C mode
+     _I2CWrite(pOBD, ucLine, 51);
+  } // for y    
+  obdWriteCommand(pOBD, 0x12); // display refresh
+  EPDWaitBusy(pOBD);
+  EPDSleep(pOBD);
+} /* EPDDumpBuffer() */
 
 //
 // Special case for Sharp Memory LCD
@@ -476,6 +1280,13 @@ uint8_t ucMask;
   digitalWrite(pOBD->iCSPin, LOW); // de-activate
 } /* SharpDumpBuffer() */
 //
+// Dump a partial screen to an e-ink display
+//
+void obdDumpPartial(OBDISP *pOBD, int startx, int starty, int width, int height)
+{
+   EPDDumpPartial(pOBD, NULL, startx, starty, width, height);
+} /* obdDumpPartial() */
+//
 // Dump a screen's worth of data directly to the display
 // Try to speed it up by comparing the new bytes with the existing buffer
 //
@@ -494,7 +1305,12 @@ uint8_t *pSrc = pOBD->ucScreen;
   if (pBuffer == NULL)
     return; // no backbuffer and no provided buffer
   
-  if (pOBD->type >= SHARP_144x168) // special case for Sharp Memory LCD
+  if (pOBD->type == EPD42_400x300)
+  {
+     EPDDumpBuffer(pOBD, pBuffer);
+     return;
+  }
+  if (pOBD->type >= SHARP_144x168) // special case for Sharp Memory LCDs
   {
     SharpDumpBuffer(pOBD, pBuffer);
     return;

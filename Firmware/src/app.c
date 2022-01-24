@@ -36,6 +36,7 @@ void user_init_normal(void)
     init_flash();
     battery_mv = get_battery_mv();
     battery_level = get_battery_level(battery_mv);
+    //epd_display(battery_level);
     epd_display_tiff((uint8_t *)bart_tif, sizeof(bart_tif));
 }
 

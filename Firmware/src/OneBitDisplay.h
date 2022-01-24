@@ -1,6 +1,10 @@
 #ifndef __ONEBITDISPLAY__
 #define __ONEBITDISPLAY__
 
+#ifndef MEMORY_ONLY
+#include <BitBang_I2C.h>
+#endif
+
 // Proportional font data taken from Adafruit_GFX library
 /// Font data stored PER GLYPH
 #if !defined( _ADAFRUIT_GFX_H ) && !defined( _GFXFONT_H_ )
@@ -32,10 +36,12 @@ uint8_t *ucScreen;
 int iCursorX, iCursorY;
 int width, height;
 int iScreenOffset;
-//BBI2C bbi2c;
+#ifndef MEMORY_ONLY
+BBI2C bbi2c;
+#endif
 uint8_t com_mode; // communication mode (I2C / SPI)
 uint8_t mode; // data/command mode for 9-bit SPI
-uint8_t iDCPin, iMOSIPin, iCLKPin, iCSPin;
+uint8_t iDCPin, iMOSIPin, iCLKPin, iCSPin, iRSTPin;
 uint8_t iLEDPin; // backlight
 uint8_t bBitBang;
 } OBDISP;
@@ -110,7 +116,8 @@ enum {
 
 // Display type for init function
 enum {
-  OLED_128x128 = 1,
+  DISPLAY_COMMANDS = 0,
+  OLED_128x128,
   OLED_128x32,
   OLED_128x64,
   OLED_132x64,
@@ -124,7 +131,9 @@ enum {
   LCD_NOKIA5110,
   LCD_VIRTUAL,
   SHARP_144x168,
-  SHARP_400x240
+  SHARP_400x240,
+  EPD42_400x300,
+  LCD_COUNT
 };
 
 // Rotation and flip angles to draw tiles
@@ -136,6 +145,15 @@ enum {
   ANGLE_FLIPX,
   ANGLE_FLIPY
 };
+// Bytewise commands for rendering scenes
+// stored in the lower 4 bits of the command byte
+// the upper 4 bits can hold single bit parameters
+#define OBD_FILL     0
+#define OBD_DRAWTEXT 1
+#define OBD_DRAWLINE 2
+#define OBD_DRAWRECT 3
+#define OBD_DRAWELLIPSE 4
+#define OBD_DRAWSPRITE  5
 
 // Return value from obd obdI2CInit()
 enum {
@@ -234,6 +252,10 @@ void obdSetCursor(OBDISP *pOBD, int x, int y);
 //
 void obdSetTextWrap(OBDISP *pOBD, int bWrap);
 //
+// Advance to the next line
+//
+void obdNextLine(OBDISP *pOBD);
+//
 // Draw a string of normal (8x8), small (6x8) or large (16x32) characters
 // At the given col+row with the given scroll offset. The scroll offset allows you to
 // horizontally scroll text which does not fit on the width of the display. The offset
@@ -280,6 +302,10 @@ void obdFill(OBDISP *pOBD, unsigned char ucData, int bRender);
 //
 int obdSetPixel(OBDISP *pOBD, int x, int y, unsigned char ucColor, int bRender);
 //
+// Dump a partial screen to an e-ink display
+//
+void obdDumpPartial(OBDISP *pOBD, int startx, int starty, int width, int height);
+//
 // Dump an entire custom buffer to the display
 // useful for custom animation effects
 //
@@ -291,7 +317,16 @@ void obdDumpBuffer(OBDISP *pOBD, uint8_t *pBuffer);
 // returns 0 for success, -1 for invalid parameter
 //
 int obdDrawGFX(OBDISP *pOBD, uint8_t *pSrc, int iSrcCol, int iSrcRow, int iDestCol, int iDestRow, int iWidth, int iHeight, int iSrcPitch);
-
+//
+// Execute a set of bytewise command bytes
+// and execute the drawing instructions on the current display/buffer
+// Optionally render on backbuffer or physical display
+//
+void obdExecCommands(uint8_t *pData, int iLen, OBDISP *pOBD, int bRender);
+//
+// Return the number of bytes accumulated as commands
+//
+int obdGetCommandLen(OBDISP *pOBD);
 //
 // Draw a line between 2 points
 //
