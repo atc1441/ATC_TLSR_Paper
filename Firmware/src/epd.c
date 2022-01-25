@@ -15,7 +15,7 @@ extern const uint8_t ucMirror[];
 #include "font_60.h"
 
 RAM uint8_t epd_update_state = 0;
-
+extern uint8_t mac_public[]; // BLE MAC address
 uint8_t epd_buffer[epd_buffer_size];
 uint8_t epd_temp[epd_buffer_size]; // for OneBitDisplay to draw into
 OBDISP obd;                        // virtual display structure
@@ -310,17 +310,24 @@ _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
     EPD_Display(epd_buffer, epd_buffer_size);
 } /* epd_display_tiff() */
 
-_attribute_ram_code_ void epd_display(uint32_t time_is)
+_attribute_ram_code_ void epd_display(uint32_t iBat)
 {
     if (epd_update_state)
         return;
     obdCreateVirtualDisplay(&obd, 250, 122, epd_temp);
     obdFill(&obd, 0, 0); // fill with white
 
-    char buff[25];
-    sprintf(buff,"%02d:%02d:%02d",((time_is/60)/60)%24,(time_is/60)%60,time_is%60);
-    obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 10, 45, (char *)buff, 1);
-    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"Time", 1);
+    char buff[32];
+//    sprintf(buff,"%02d:%02d:%02d",((time_is/60)/60)%24,(time_is/60)%60,time_is%60);
+//    obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 10, 45, (char *)buff, 1);
+//    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"Time", 1);
+    obdWriteString(&obd, 0,0,0,(char *)"Firmware 1.0.0", FONT_16x16,0,0);
+    sprintf(buff, "Battery: %d%%", iBat);
+    obdWriteString(&obd, 0,0,2,buff, FONT_16x16, 0,0);
+    sprintf(buff, "BLE Name: ESL_%02X%02X%02X", mac_public[2], mac_public[1], mac_public[0]);
+    obdWriteString(&obd, 0,0,10,buff, FONT_12x16, 0, 0);
+    sprintf(buff, "%02X:%02X:%02X:%02X:%02X:%02X", mac_public[5], mac_public[4], mac_public[3], mac_public[2], mac_public[1], mac_public[0]);
+    obdWriteString(&obd, 0,0,13,buff, FONT_12x16, 0,0);
     FixBuffer(epd_temp, epd_buffer);
     EPD_Display(epd_buffer, epd_buffer_size);
 } /* epd_display() */
