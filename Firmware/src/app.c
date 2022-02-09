@@ -61,12 +61,12 @@ RAM uint32_t last_update;
 _attribute_ram_code_ void main_loop()
 {
     blt_sdk_main_loop();
+    set_led_color(2);
     if (clock_time() - last_clock_increase >= CLOCK_16M_SYS_TIMER_CLK_1S)
     {
         last_clock_increase += CLOCK_16M_SYS_TIMER_CLK_1S;
         current_unix_time++;
     }
-    set_led_color(2);
 
     if (current_unix_time - last_update > 30)
     {
