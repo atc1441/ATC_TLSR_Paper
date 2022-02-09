@@ -12,3 +12,4 @@ void blt_pm_proc(void);
 
 int RxTxWrite(void * p);
 int otaWritePre(void * p);
+void ble_set_connection_speed(uint16_t speed);

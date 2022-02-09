@@ -39,9 +39,6 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 	
 	init_uart();
 	init_i2c();
-	init_nfc();
-	init_led();
-	deinit_epd();// DeInit EPD GPIOs for low power
 		
 	if( deepRetWakeUp ){
 		user_init_deepRetn ();

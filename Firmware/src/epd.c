@@ -92,82 +92,46 @@ _attribute_ram_code_ void EPD_LoadImage(unsigned char *image, int size)
 
 _attribute_ram_code_ void init_epd()
 {
-    // reset pin configuration
     gpio_set_func(EPD_RESET, AS_GPIO);
     gpio_set_output_en(EPD_RESET, 1);
-    gpio_set_input_en(EPD_RESET, 0);
-    gpio_write(EPD_RESET, 0);
-    // BS1 pin configuration
-    // EPD power supply control pin configuration
-    gpio_set_func(EPD_ENABLE, AS_GPIO);
-    gpio_set_output_en(EPD_ENABLE, 1);
-    gpio_set_input_en(EPD_ENABLE, 0);
-    gpio_write(EPD_ENABLE, 1);
-    // EPD Data/Command control pin configuration
+    gpio_setup_up_down_resistor(EPD_RESET, PM_PIN_PULLUP_1M);
+
     gpio_set_func(EPD_DC, AS_GPIO);
     gpio_set_output_en(EPD_DC, 1);
-    gpio_set_input_en(EPD_DC, 0);
-    gpio_write(EPD_DC, 0);
-    // EPD Busy Status pin configuratioin
+    gpio_setup_up_down_resistor(EPD_DC, PM_PIN_PULLUP_1M);
+
     gpio_set_func(EPD_BUSY, AS_GPIO);
     gpio_set_output_en(EPD_BUSY, 0);
     gpio_set_input_en(EPD_BUSY, 1);
     gpio_setup_up_down_resistor(EPD_BUSY, PM_PIN_PULLUP_1M);
 
-    // cs pin configuration
     gpio_set_func(EPD_CS, AS_GPIO);
     gpio_set_output_en(EPD_CS, 1);
-    gpio_set_input_en(EPD_CS, 0);
-    gpio_write(EPD_CS, 1);
-    // clk pin configuration
+    gpio_setup_up_down_resistor(EPD_CS, PM_PIN_PULLUP_1M);
+
     gpio_set_func(EPD_CLK, AS_GPIO);
     gpio_set_output_en(EPD_CLK, 1);
-    gpio_set_input_en(EPD_CLK, 0);
-    gpio_write(EPD_CLK, 0);
-    // DO pin configuration
+    gpio_setup_up_down_resistor(EPD_CLK, PM_PIN_PULLUP_1M);
+
     gpio_set_func(EPD_MOSI, AS_GPIO);
     gpio_set_output_en(EPD_MOSI, 1);
-    gpio_set_input_en(EPD_MOSI, 0);
-    gpio_write(EPD_MOSI, 1);
+    gpio_setup_up_down_resistor(EPD_MOSI, PM_PIN_PULLUP_1M);
+
+    // gpio_set_func(EPD_ENABLE, AS_GPIO);
+    gpio_set_output_en(EPD_ENABLE, 0);
+    gpio_set_input_en(EPD_ENABLE, 1);
+    // gpio_shutdown(EPD_ENABLE);
+    gpio_setup_up_down_resistor(EPD_ENABLE, PM_PIN_PULLUP_1M);
 }
 
 _attribute_ram_code_ void deinit_epd(void)
 {
-    // GPIO_AllTurnOff();
-    gpio_set_func(EPD_RESET, AS_GPIO);
-    gpio_setup_up_down_resistor(EPD_RESET, PM_PIN_PULLUP_10K);
-    gpio_set_output_en(EPD_RESET, 0);
-    gpio_set_input_en(EPD_RESET, 1);
-    gpio_setup_up_down_resistor(EPD_RESET, PM_PIN_PULLUP_10K);
-    // EPD power supply control pin configuration
-    gpio_set_func(EPD_ENABLE, AS_GPIO);
-    gpio_setup_up_down_resistor(EPD_ENABLE, PM_PIN_PULLDOWN_100K);
-    gpio_set_output_en(EPD_ENABLE, 0);
-    gpio_set_input_en(EPD_ENABLE, 1);
-    gpio_setup_up_down_resistor(EPD_ENABLE, PM_PIN_PULLDOWN_100K);
-    // EPD Data/Command control pin configuration
-    gpio_set_func(EPD_DC, AS_GPIO);
-    gpio_set_output_en(EPD_DC, 0);
-    gpio_set_input_en(EPD_DC, 1);
-    gpio_setup_up_down_resistor(EPD_DC, PM_PIN_PULLUP_1M);
-    // EPD Busy Status pin configuratioin
-    gpio_set_func(EPD_BUSY, AS_GPIO);
-    gpio_set_output_en(EPD_BUSY, 0);
-    gpio_set_input_en(EPD_BUSY, 1);
-    gpio_setup_up_down_resistor(EPD_BUSY, PM_PIN_PULLDOWN_100K); // turn off pull-up resistor
-    // Turn off all SPI IOs
-    gpio_set_func(EPD_CS, AS_GPIO);
-    gpio_set_output_en(EPD_CS, 0);
-    gpio_set_input_en(EPD_CS, 1);
-    gpio_setup_up_down_resistor(EPD_CS, PM_PIN_PULLUP_1M);
-    gpio_set_func(EPD_CLK, AS_GPIO);
-    gpio_set_output_en(EPD_CLK, 0);
-    gpio_set_input_en(EPD_CLK, 1);
-    gpio_setup_up_down_resistor(EPD_CLK, PM_PIN_PULLDOWN_100K);
-    gpio_set_func(EPD_MOSI, AS_GPIO);
-    gpio_set_output_en(EPD_MOSI, 0);
-    gpio_set_input_en(EPD_MOSI, 1);
-    gpio_setup_up_down_resistor(EPD_MOSI, PM_PIN_PULLDOWN_100K);
+    gpio_shutdown(EPD_RESET);
+    gpio_shutdown(EPD_DC);
+    gpio_shutdown(EPD_CS);
+    gpio_shutdown(EPD_CLK);
+    gpio_shutdown(EPD_MOSI);
+    gpio_shutdown(EPD_BUSY);
 }
 
 _attribute_ram_code_ void EPD_Display(unsigned char *image, int size)
@@ -212,13 +176,11 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, int size)
     // trigger display refresh
     EPD_WriteCmd(0x12);
 
-    deinit_epd();
     epd_update_state = 1;
 }
 
 _attribute_ram_code_ void epd_set_sleep()
 {
-    init_epd();
     // Vcom and data interval setting
     EPD_WriteCmd(0x50);
     EPD_WriteData(0xf7);
@@ -267,26 +229,29 @@ _attribute_ram_code_ void FixBuffer(uint8_t *pSrc, uint8_t *pDst)
 
 _attribute_ram_code_ void TIFFDraw(TIFFDRAW *pDraw)
 {
-uint8_t uc=0, ucSrcMask, ucDstMask, *s, *d;
-int x, y;
+    uint8_t uc = 0, ucSrcMask, ucDstMask, *s, *d;
+    int x, y;
 
-   s = pDraw->pPixels;
-   y = pDraw->y; // current line
-   d = &epd_buffer[(249*16)+(y/8)]; // rotated 90 deg clockwise
-   ucDstMask = 0x80 >> (y & 7); // destination mask
-   ucSrcMask = 0; // src mask
-   for (x=0; x<pDraw->iWidth; x++) {
-      // Slower to draw this way, but it allows us to use a single buffer
-      // instead of drawing and then converting the pixels to be the EPD format
-      if (ucSrcMask == 0) { // load next source byte
-          ucSrcMask = 0x80;
-	  uc = *s++;
-      }
-      if (!(uc & ucSrcMask)) { // black pixel
-         d[-(x*16)] &= ~ucDstMask;
-      }
-      ucSrcMask >>= 1;
-   }
+    s = pDraw->pPixels;
+    y = pDraw->y;                          // current line
+    d = &epd_buffer[(249 * 16) + (y / 8)]; // rotated 90 deg clockwise
+    ucDstMask = 0x80 >> (y & 7);           // destination mask
+    ucSrcMask = 0;                         // src mask
+    for (x = 0; x < pDraw->iWidth; x++)
+    {
+        // Slower to draw this way, but it allows us to use a single buffer
+        // instead of drawing and then converting the pixels to be the EPD format
+        if (ucSrcMask == 0)
+        { // load next source byte
+            ucSrcMask = 0x80;
+            uc = *s++;
+        }
+        if (!(uc & ucSrcMask))
+        { // black pixel
+            d[-(x * 16)] &= ~ucDstMask;
+        }
+        ucSrcMask >>= 1;
+    }
 } /* TIFFDraw() */
 
 _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
@@ -308,7 +273,7 @@ _attribute_ram_code_ void epd_display(uint32_t time_is)
     obdFill(&obd, 0, 0); // fill with white
 
     char buff[25];
-    sprintf(buff,"%02d:%02d:%02d",((time_is/60)/60)%24,(time_is/60)%60,time_is%60);
+    sprintf(buff, "%02d:%02d:%02d", ((time_is / 60) / 60) % 24, (time_is / 60) % 60, time_is % 60);
     obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 10, 45, (char *)buff, 1);
     obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"Time", 1);
     FixBuffer(epd_temp, epd_buffer);

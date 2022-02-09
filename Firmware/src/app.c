@@ -34,9 +34,12 @@ void user_init_normal(void)
     random_generator_init(); // must
     init_ble();
     init_flash();
+    init_nfc();
+    init_led();
     battery_mv = get_battery_mv();
     battery_level = get_battery_level(battery_mv);
     epd_display_tiff((uint8_t *)bart_tif, sizeof(bart_tif));
+    //epd_display(3334533);
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void)
@@ -71,13 +74,15 @@ _attribute_ram_code_ void main_loop()
         // Uncomment this line to periodically have the display refreshed with the current time.
         // epd_display(current_unix_time);
     }
+
     if (epd_state_handler()) // if epd_update is ongoing enable gpio wakeup to put the display to sleep as fast as possible
     {
         cpu_set_gpio_wakeup(EPD_BUSY, 1, 1);
         bls_pm_setWakeupSource(PM_WAKEUP_PAD);
+        bls_pm_setSuspendMask(SUSPEND_DISABLE);
     }
-    deinit_nfc();
-    deinit_led();
-    gpio_shutdown(GPIO_ALL);
-    blt_pm_proc();
+    else
+    {
+        blt_pm_proc();
+    }
 }
