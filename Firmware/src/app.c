@@ -11,6 +11,7 @@
 #include "flash.h"
 #include "ota.h"
 #include "epd.h"
+#include "time.h"
 #include "bart_tif.h"
 
 extern uint8_t *epd_temp;
@@ -29,17 +30,20 @@ RAM bool show_batt_or_humi;
 // Settings
 extern settings_struct settings;
 
-void user_init_normal(void)
+_attribute_ram_code_ void user_init_normal(void)
 {                            // this will get executed one time after power up
     random_generator_init(); // must
+    init_time();
     init_ble();
     init_flash();
     init_nfc();
     init_led();
     battery_mv = get_battery_mv();
     battery_level = get_battery_level(battery_mv);
+    set_adv_data(0, 0, battery_level, battery_mv);
+    ble_send_battery(battery_level);
     epd_display_tiff((uint8_t *)bart_tif, sizeof(bart_tif));
-    //epd_display(3334533);
+    // epd_display(3334533);
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void)
@@ -49,31 +53,23 @@ _attribute_ram_code_ void user_init_deepRetn(void)
     blc_ll_recoverDeepRetention();
 }
 
-RAM uint32_t current_unix_time;
-RAM uint32_t last_clock_increase;
-
-void set_time(uint32_t time_now)
-{
-    current_unix_time = time_now;
-}
-
-RAM uint32_t last_update;
 _attribute_ram_code_ void main_loop()
 {
     blt_sdk_main_loop();
-    set_led_color(2);
-    if (clock_time() - last_clock_increase >= CLOCK_16M_SYS_TIMER_CLK_1S)
-    {
-        last_clock_increase += CLOCK_16M_SYS_TIMER_CLK_1S;
-        current_unix_time++;
-    }
+    handler_time();
 
-    if (current_unix_time - last_update > 30)
+    if (time_reached_period(30)) // Check if x seconds have past to do a task
     {
-        last_update = current_unix_time;
+        battery_mv = get_battery_mv();
+        battery_level = get_battery_level(battery_mv);
+        set_adv_data(0, 0, battery_level, battery_mv);
+        ble_send_battery(battery_level);
+
         // Uncomment this line to periodically have the display refreshed with the current time.
         // epd_display(current_unix_time);
     }
+
+    set_led_color(2);
 
     if (epd_state_handler()) // if epd_update is ongoing enable gpio wakeup to put the display to sleep as fast as possible
     {
