@@ -12,6 +12,7 @@
 extern const uint8_t ucMirror[];
 #include "Roboto_Black_80.h"
 #include "font_60.h"
+#include "font16.h"
 
 RAM uint8_t epd_update_state = 0;
 
@@ -136,6 +137,7 @@ _attribute_ram_code_ void deinit_epd(void)
 
 _attribute_ram_code_ void EPD_Display(unsigned char *image, int size)
 {
+
     init_epd();
     // system power
     EPD_POWER_ON();
@@ -265,7 +267,7 @@ _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
     EPD_Display(epd_buffer, epd_buffer_size);
 } /* epd_display_tiff() */
 
-_attribute_ram_code_ void epd_display(uint32_t time_is)
+_attribute_ram_code_ void epd_display(uint32_t time_is, uint16_t battery_mv, int16_t temperature)
 {
     if (epd_update_state)
         return;
@@ -273,9 +275,12 @@ _attribute_ram_code_ void epd_display(uint32_t time_is)
     obdFill(&obd, 0, 0); // fill with white
 
     char buff[25];
-    sprintf(buff, "%02d:%02d:%02d", ((time_is / 60) / 60) % 24, (time_is / 60) % 60, time_is % 60);
-    obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 10, 45, (char *)buff, 1);
-    obdWriteStringCustom(&obd, (GFXfont *)&Roboto_Black_80, 0, 120, (char *)"Time", 1);
+    sprintf(buff, "Time %02d:%02d:%02d", ((time_is / 60) / 60) % 24, (time_is / 60) % 60, time_is % 60);
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 45, (char *)buff, 1);
+    sprintf(buff, "Temperature %d C", temperature);
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 80, (char *)buff, 1);
+    sprintf(buff, "Battery %dmV", battery_mv);
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 120, (char *)buff, 1);
     FixBuffer(epd_temp, epd_buffer);
     EPD_Display(epd_buffer, epd_buffer_size);
 } /* epd_display() */

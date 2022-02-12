@@ -5,6 +5,7 @@
 #include "stack/ble/ble.h"
 
 #include "epd.h"
+#include "ble.h"
 
 extern uint8_t *epd_temp;
 

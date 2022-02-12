@@ -37,6 +37,7 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 #endif
 	blc_app_loadCustomizedParameters();
 	
+    init_led();
 	init_uart();
 	init_i2c();
 		

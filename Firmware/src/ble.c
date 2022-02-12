@@ -14,7 +14,6 @@
 #include "flash.h"
 
 RAM uint8_t ble_connected = 0;
-
 RAM uint8_t ota_started = 0;
 extern uint8_t my_tempVal[2];
 extern uint8_t my_batVal[1];
@@ -162,12 +161,15 @@ bool ble_get_connected()
 	return ble_connected;
 }
 
-void set_adv_data(int16_t temp, uint16_t humi, uint8_t battery_level, uint16_t battery_mv)
+bool ble_get_ota_started()
+{
+	return ota_started;
+}
+
+void set_adv_data(int16_t temp, uint8_t battery_level, uint16_t battery_mv)
 {
 	advertising_data[10] = temp >> 8;
 	advertising_data[11] = temp & 0xff;
-
-	advertising_data[12] = humi & 0xff;
 
 	advertising_data[13] = battery_level;
 
@@ -179,7 +181,7 @@ void set_adv_data(int16_t temp, uint16_t humi, uint8_t battery_level, uint16_t b
 	bls_ll_setAdvData((uint8_t *)advertising_data, sizeof(advertising_data));
 }
 
-void ble_send_temp(uint16_t temp)
+void ble_send_temp(int16_t temp)
 {
 	my_tempVal[0] = temp & 0xFF;
 	my_tempVal[1] = temp >> 8;

@@ -14,18 +14,9 @@
 #include "time.h"
 #include "bart_tif.h"
 
-extern uint8_t *epd_temp;
-RAM uint32_t last_delay = 0xFFFF0000, last_adv_delay = 0xFFFF0000, last_battery_delay = 0xFFFF0000;
-RAM bool last_smiley;
-int16_t temp = 0;
-uint16_t humi = 0;
-RAM uint8_t adv_count = 0;
-RAM uint8_t meas_count = 254;
-RAM int16_t last_temp;
-RAM uint16_t last_humi;
 RAM uint8_t battery_level;
 RAM uint16_t battery_mv;
-RAM bool show_batt_or_humi;
+RAM int16_t temperature;
 
 // Settings
 extern settings_struct settings;
@@ -37,13 +28,9 @@ _attribute_ram_code_ void user_init_normal(void)
     init_ble();
     init_flash();
     init_nfc();
-    init_led();
-    battery_mv = get_battery_mv();
-    battery_level = get_battery_level(battery_mv);
-    set_adv_data(0, 0, battery_level, battery_mv);
-    ble_send_battery(battery_level);
-    epd_display_tiff((uint8_t *)bart_tif, sizeof(bart_tif));
-    // epd_display(3334533);
+
+    // epd_display_tiff((uint8_t *)bart_tif, sizeof(bart_tif));
+    //  epd_display(3334533);
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void)
@@ -55,21 +42,31 @@ _attribute_ram_code_ void user_init_deepRetn(void)
 
 _attribute_ram_code_ void main_loop()
 {
+    set_led_color(0);
     blt_sdk_main_loop();
     handler_time();
 
-    if (time_reached_period(30)) // Check if x seconds have past to do a task
+    if (time_reached_period(Timer_CH_1, 30))
     {
         battery_mv = get_battery_mv();
         battery_level = get_battery_level(battery_mv);
-        set_adv_data(0, 0, battery_level, battery_mv);
+        temperature = get_temperature_c();
+        set_adv_data(temperature, battery_level, battery_mv);
         ble_send_battery(battery_level);
-
-        // Uncomment this line to periodically have the display refreshed with the current time.
-        // epd_display(current_unix_time);
+        ble_send_temp(temperature);
     }
 
-    set_led_color(2);
+    if (time_reached_period(Timer_CH_2, 60))
+    {
+        epd_display(get_time(), battery_mv, temperature);
+    }
+
+    if (time_reached_period(Timer_CH_0, 10))
+    {
+        set_led_color(2);
+        WaitMs(1);
+        set_led_color(0);
+    }
 
     if (epd_state_handler()) // if epd_update is ongoing enable gpio wakeup to put the display to sleep as fast as possible
     {
