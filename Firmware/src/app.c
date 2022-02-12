@@ -56,7 +56,7 @@ _attribute_ram_code_ void main_loop()
         ble_send_temp(temperature);
     }
 
-    if (time_reached_period(Timer_CH_2, 60))
+    if (time_reached_period(Timer_CH_2, 600))
     {
         epd_display(get_time(), battery_mv, temperature);
     }
