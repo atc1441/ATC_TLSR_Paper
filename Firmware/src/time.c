@@ -11,12 +11,12 @@ RAM uint32_t last_clock_increase;
 RAM uint32_t last_reached_period[10] = {0};
 RAM uint8_t has_ever_reached[10] = {0};
 
-_attribute_ram_code_ void init_time()
+_attribute_ram_code_ void init_time(void)
 {
     current_unix_time = 0;
 }
 
-_attribute_ram_code_ void handler_time()
+_attribute_ram_code_ void handler_time(void)
 {
     if (clock_time() - last_clock_increase >= CLOCK_16M_SYS_TIMER_CLK_1S)
     {

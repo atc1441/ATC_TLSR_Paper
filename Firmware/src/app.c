@@ -18,6 +18,8 @@ RAM uint8_t battery_level;
 RAM uint16_t battery_mv;
 RAM int16_t temperature;
 
+RAM uint8_t count_epd_refresh = 60;
+
 // Settings
 extern settings_struct settings;
 
@@ -30,7 +32,7 @@ _attribute_ram_code_ void user_init_normal(void)
     init_nfc();
 
     // epd_display_tiff((uint8_t *)bart_tif, sizeof(bart_tif));
-    //  epd_display(3334533);
+    // epd_display(3334533);
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void)
@@ -40,9 +42,8 @@ _attribute_ram_code_ void user_init_deepRetn(void)
     blc_ll_recoverDeepRetention();
 }
 
-_attribute_ram_code_ void main_loop()
+_attribute_ram_code_ void main_loop(void)
 {
-    set_led_color(0);
     blt_sdk_main_loop();
     handler_time();
 
@@ -56,14 +57,26 @@ _attribute_ram_code_ void main_loop()
         ble_send_temp(temperature);
     }
 
-    if (time_reached_period(Timer_CH_2, 600))
+    if (time_reached_period(Timer_CH_2, 60))
     {
-        epd_display(get_time(), battery_mv, temperature);
+        count_epd_refresh++;
+        if (count_epd_refresh > 60)
+        {
+            count_epd_refresh = 0;
+            epd_display(get_time(), battery_mv, temperature, 1);
+        }
+        else
+        {
+            epd_display(get_time(), battery_mv, temperature, 0);
+        }
     }
 
     if (time_reached_period(Timer_CH_0, 10))
     {
-        set_led_color(2);
+        if (ble_get_connected())
+            set_led_color(3);
+        else
+            set_led_color(2);
         WaitMs(1);
         set_led_color(0);
     }

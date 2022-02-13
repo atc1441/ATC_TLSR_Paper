@@ -13,13 +13,35 @@ extern const uint8_t ucMirror[];
 #include "Roboto_Black_80.h"
 #include "font_60.h"
 #include "font16.h"
+#include "font30.h"
 
 RAM uint8_t epd_update_state = 0;
 
+RAM uint8_t epd_temperature_is_read = 0;
+RAM uint8_t epd_temperature = 0;
+
 uint8_t epd_buffer[epd_buffer_size];
+RAM uint8_t epd_buffer_old[epd_buffer_size];
 uint8_t epd_temp[epd_buffer_size]; // for OneBitDisplay to draw into
 OBDISP obd;                        // virtual display structure
 TIFFIMAGE tiff;
+
+#define _refresh_time 10
+uint8_t lut_20_part[] =
+    {
+        0x20, 0x00, _refresh_time, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+uint8_t lut_21_part[] =
+    {
+        0x21, 0x00, _refresh_time, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+uint8_t lut_22_part[] =
+    {
+        0x22, 0x80, _refresh_time, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+uint8_t lut_23_part[] =
+    {
+        0x23, 0x40, _refresh_time, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+uint8_t lut_24_part[] =
+    {
+        0x24, 0x00, _refresh_time, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 #define EPD_POWER_ON() gpio_write(EPD_ENABLE, 0)
 
@@ -51,6 +73,33 @@ _attribute_ram_code_ void EPD_SPI_Write(unsigned char value)
     }
 }
 
+_attribute_ram_code_ uint8_t EPD_SPI_read(void)
+{
+    unsigned char i;
+    uint8_t value = 0;
+
+    gpio_shutdown(EPD_MOSI);
+    gpio_set_output_en(EPD_MOSI, 0);
+    gpio_set_input_en(EPD_MOSI, 1);
+    gpio_write(EPD_CS, 0);
+    EPD_ENABLE_WRITE_DATA();
+    WaitUs(10);
+    for (i = 0; i < 8; i++)
+    {
+        value <<= 1;
+        if (gpio_read(EPD_MOSI) != 0)
+        {
+            value |= 1;
+        }
+        gpio_write(EPD_CLK, 1);
+        gpio_write(EPD_CLK, 0);
+    }
+    gpio_set_output_en(EPD_MOSI, 1);
+    gpio_set_input_en(EPD_MOSI, 0);
+    gpio_write(EPD_CS, 1);
+    return value;
+}
+
 _attribute_ram_code_ void EPD_WriteCmd(unsigned char cmd)
 {
     gpio_write(EPD_CS, 0);
@@ -74,15 +123,25 @@ _attribute_ram_code_ void EPD_CheckStatus(void)
     }
 }
 
+_attribute_ram_code_ void _send_lut(uint8_t lut[])
+{
+    EPD_WriteCmd(lut[0]);
+    for (int r = 1; r <= sizeof(lut_20_part); r++)
+    {
+        EPD_WriteData(lut[r]);
+    }
+}
+
+_attribute_ram_code_ void _send_empty_lut(uint8_t lut)
+{
+    EPD_WriteCmd(lut);
+    for (int r = 0; r <= 260; r++)
+        EPD_WriteData(0x00);
+}
+
 _attribute_ram_code_ void EPD_LoadImage(unsigned char *image, int size)
 {
     int i;
-    EPD_WriteCmd(0x10);
-    for (i = 0; i < size; i++)
-    {
-        EPD_WriteData(0xff);
-    }
-
     EPD_WriteCmd(0x13);
     for (i = 0; i < size; i++)
     {
@@ -91,7 +150,7 @@ _attribute_ram_code_ void EPD_LoadImage(unsigned char *image, int size)
     WaitMs(2);
 }
 
-_attribute_ram_code_ void init_epd()
+_attribute_ram_code_ void init_epd(void)
 {
     gpio_set_func(EPD_RESET, AS_GPIO);
     gpio_set_output_en(EPD_RESET, 1);
@@ -118,24 +177,48 @@ _attribute_ram_code_ void init_epd()
     gpio_set_output_en(EPD_MOSI, 1);
     gpio_setup_up_down_resistor(EPD_MOSI, PM_PIN_PULLUP_1M);
 
-    // gpio_set_func(EPD_ENABLE, AS_GPIO);
     gpio_set_output_en(EPD_ENABLE, 0);
     gpio_set_input_en(EPD_ENABLE, 1);
-    // gpio_shutdown(EPD_ENABLE);
     gpio_setup_up_down_resistor(EPD_ENABLE, PM_PIN_PULLUP_1M);
 }
 
-_attribute_ram_code_ void deinit_epd(void)
+_attribute_ram_code_ uint8_t EPD_read_temp(void)
 {
-    gpio_shutdown(EPD_RESET);
-    gpio_shutdown(EPD_DC);
-    gpio_shutdown(EPD_CS);
-    gpio_shutdown(EPD_CLK);
-    gpio_shutdown(EPD_MOSI);
-    gpio_shutdown(EPD_BUSY);
+    if (epd_temperature_is_read)
+        return epd_temperature;
+
+    init_epd();
+    // system power
+    EPD_POWER_ON();
+    // Reset the EPD driver IC
+    gpio_write(EPD_RESET, 0);
+    WaitMs(10);
+    gpio_write(EPD_RESET, 1);
+    WaitMs(10);
+    // power on
+    EPD_WriteCmd(0x04);
+
+    // check BUSY pin
+    EPD_CheckStatus();
+
+    EPD_WriteCmd(0x40);
+    epd_temperature = EPD_SPI_read();
+    EPD_SPI_read();
+    epd_temperature_is_read = 1;
+
+    // power off
+    EPD_WriteCmd(0x02);
+
+    // deep sleep
+    EPD_WriteCmd(0x07);
+    EPD_WriteData(0xa5);
+
+    EPD_POWER_OFF();
+
+    return epd_temperature;
 }
 
-_attribute_ram_code_ void EPD_Display(unsigned char *image, int size)
+_attribute_ram_code_ void EPD_Display(unsigned char *image, int size, uint8_t full_or_partial)
 {
 
     init_epd();
@@ -157,9 +240,17 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, int size)
     // check BUSY pin
     EPD_CheckStatus();
 
+    EPD_WriteCmd(0x40);
+    epd_temperature = EPD_SPI_read();
+    EPD_SPI_read();
+    epd_temperature_is_read = 1;
+
     // panel setting
     EPD_WriteCmd(0x00);
-    EPD_WriteData(0x1f);
+    if (full_or_partial)
+        EPD_WriteData(0b00011111);
+    else
+        EPD_WriteData(0b00111111);
     EPD_WriteData(0x0f);
 
     // resolution setting
@@ -172,16 +263,32 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, int size)
     EPD_WriteCmd(0X50);
     EPD_WriteData(0x97);
 
+    if (!full_or_partial)
+    {
+        _send_lut(lut_20_part);
+        _send_empty_lut(0x21); //_send_lut(lut_21_part);
+        _send_lut(lut_22_part);
+        _send_lut(lut_23_part);
+        _send_empty_lut(0x24); //_send_lut(lut_24_part);
+
+        EPD_WriteCmd(0x10);
+        int i;
+        for (i = 0; i < size; i++)
+        {
+            EPD_WriteData(epd_buffer_old[i]);
+        }
+    }
     // load image data to EPD
     EPD_LoadImage(image, size);
 
     // trigger display refresh
     EPD_WriteCmd(0x12);
+    memcpy(epd_buffer_old, epd_buffer, size);
 
     epd_update_state = 1;
 }
 
-_attribute_ram_code_ void epd_set_sleep()
+_attribute_ram_code_ void epd_set_sleep(void)
 {
     // Vcom and data interval setting
     EPD_WriteCmd(0x50);
@@ -195,11 +302,10 @@ _attribute_ram_code_ void epd_set_sleep()
     EPD_WriteData(0xa5);
 
     EPD_POWER_OFF();
-    deinit_epd();
     epd_update_state = 0;
 }
 
-_attribute_ram_code_ uint8_t epd_state_handler()
+_attribute_ram_code_ uint8_t epd_state_handler(void)
 {
     switch (epd_update_state)
     {
@@ -264,10 +370,10 @@ _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
     TIFF_setDrawParameters(&tiff, 65536, TIFF_PIXEL_1BPP, 0, 0, 250, 122, NULL);
     TIFF_decode(&tiff);
     TIFF_close(&tiff);
-    EPD_Display(epd_buffer, epd_buffer_size);
+    EPD_Display(epd_buffer, epd_buffer_size, 1);
 } /* epd_display_tiff() */
 
-_attribute_ram_code_ void epd_display(uint32_t time_is, uint16_t battery_mv, int16_t temperature)
+_attribute_ram_code_ void epd_display(uint32_t time_is, uint16_t battery_mv, int16_t temperature, uint8_t full_or_partial)
 {
     if (epd_update_state)
         return;
@@ -275,14 +381,16 @@ _attribute_ram_code_ void epd_display(uint32_t time_is, uint16_t battery_mv, int
     obdFill(&obd, 0, 0); // fill with white
 
     char buff[25];
-    sprintf(buff, "Time %02d:%02d:%02d", ((time_is / 60) / 60) % 24, (time_is / 60) % 60, time_is % 60);
-    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 45, (char *)buff, 1);
+    sprintf(buff, "%02d:%02d", ((time_is / 60) / 60) % 24, (time_is / 60) % 60);
+    obdWriteStringCustom(&obd, (GFXfont *)&Special_Elite_Regular_30, 10, 45, (char *)buff, 1);
     sprintf(buff, "Temperature %d C", temperature);
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 80, (char *)buff, 1);
+    sprintf(buff, "EPD Temperature %d C", EPD_read_temp());
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 100, (char *)buff, 1);
     sprintf(buff, "Battery %dmV", battery_mv);
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 120, (char *)buff, 1);
     FixBuffer(epd_temp, epd_buffer);
-    EPD_Display(epd_buffer, epd_buffer_size);
+    EPD_Display(epd_buffer, epd_buffer_size, full_or_partial);
 } /* epd_display() */
 
 _attribute_ram_code_ void epd_display_char(uint8_t data)
@@ -292,10 +400,10 @@ _attribute_ram_code_ void epd_display_char(uint8_t data)
     {
         epd_buffer[i] = data;
     }
-    EPD_Display(epd_buffer, epd_buffer_size);
+    EPD_Display(epd_buffer, epd_buffer_size, 1);
 }
 
-_attribute_ram_code_ void epd_clear()
+_attribute_ram_code_ void epd_clear(void)
 {
     memset(epd_buffer, 0x00, epd_buffer_size);
 }

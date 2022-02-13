@@ -1,3 +1,3 @@
 #pragma once
 
-void init_uart();
+void init_uart(void);

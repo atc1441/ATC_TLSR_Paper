@@ -17,7 +17,7 @@ typedef struct Settings_struct
 } settings_struct;
 
 
-void init_flash();
-void reset_settings_to_default();
-void save_settings_to_flash();
-uint8_t get_crc();
+void init_flash(void);
+void reset_settings_to_default(void);
+void save_settings_to_flash(void);
+uint8_t get_crc(void);

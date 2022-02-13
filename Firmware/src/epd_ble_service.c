@@ -37,7 +37,7 @@ int epd_ble_handle_write(void *p)
 	// Push buffer to display.
 	case 0x01:
 		ble_set_connection_speed(200);
-		EPD_Display(image, epd_buffer_size);
+		EPD_Display(image, epd_buffer_size, 1);
 		return 0;
 	// Set byte_pos.
 	case 0x02:

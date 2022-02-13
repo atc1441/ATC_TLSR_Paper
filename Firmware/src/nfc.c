@@ -6,7 +6,7 @@
 #include "nfc.h"
 #include "main.h"
 
-_attribute_ram_code_ void init_nfc()
+_attribute_ram_code_ void init_nfc(void)
 {
     gpio_set_func(NFC_CS, AS_GPIO);
     gpio_set_output_en(NFC_CS, 1);

@@ -49,13 +49,13 @@ RAM uint8_t advertising_data[] = {
 
 uint8_t mac_public[6];
 
-void app_switch_to_indirect_adv(uint8_t e, uint8_t *p, int n)
+_attribute_ram_code_ void app_switch_to_indirect_adv(uint8_t e, uint8_t *p, int n)
 {
 	bls_ll_setAdvParam(ADVERTISING_INTERVAL, ADVERTISING_INTERVAL + 50, ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC, 0, NULL, BLT_ENABLE_ADV_ALL, ADV_FP_NONE);
 	bls_ll_setAdvEnable(1);
 }
 
-void ble_disconnect_callback(uint8_t e, uint8_t *p, int n)
+_attribute_ram_code_ void ble_disconnect_callback(uint8_t e, uint8_t *p, int n)
 {
 	ble_connected = 0;
 	ota_started = 0;
@@ -67,7 +67,7 @@ _attribute_ram_code_ void user_set_rf_power(uint8_t e, uint8_t *p, int n)
 	rf_set_power_level_index(RF_POWER_P3p01dBm);
 }
 
-void ble_connect_callback(uint8_t e, uint8_t *p, int n)
+_attribute_ram_code_ void ble_connect_callback(uint8_t e, uint8_t *p, int n)
 {
 	ble_connected = 1;
 	ota_started = 0;
@@ -75,12 +75,12 @@ void ble_connect_callback(uint8_t e, uint8_t *p, int n)
 	printf("BLE connected\r\n");
 }
 
-void ble_set_connection_speed(uint16_t speed)
+_attribute_ram_code_ void ble_set_connection_speed(uint16_t speed)
 {
 	bls_l2cap_requestConnParamUpdate(speed, speed + 2, 0, 2000);
 }
 
-int otaWritePre(void *p)
+_attribute_ram_code_ int otaWritePre(void *p)
 {
 	if (ota_started == 0)
 	{
@@ -90,7 +90,7 @@ int otaWritePre(void *p)
 	return custom_otaWrite(p);
 }
 
-int RxTxWrite(void *p)
+_attribute_ram_code_ int RxTxWrite(void *p)
 {
 	cmd_parser(p);
 	return 0;
@@ -101,7 +101,7 @@ _attribute_ram_code_ void blt_pm_proc(void)
 	bls_pm_setSuspendMask(SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
 }
 
-void init_ble()
+void init_ble(void)
 {
 	////////////////// BLE stack initialization ////////////////////////////////////
 	uint8_t mac_random_static[6];
@@ -156,17 +156,17 @@ void init_ble()
 	blc_att_setRxMtuSize(250);
 }
 
-bool ble_get_connected()
+_attribute_ram_code_ bool ble_get_connected(void)
 {
 	return ble_connected;
 }
 
-bool ble_get_ota_started()
+_attribute_ram_code_ bool ble_get_ota_started(void)
 {
 	return ota_started;
 }
 
-void set_adv_data(int16_t temp, uint8_t battery_level, uint16_t battery_mv)
+_attribute_ram_code_ void set_adv_data(int16_t temp, uint8_t battery_level, uint16_t battery_mv)
 {
 	advertising_data[10] = temp >> 8;
 	advertising_data[11] = temp & 0xff;
@@ -181,14 +181,14 @@ void set_adv_data(int16_t temp, uint8_t battery_level, uint16_t battery_mv)
 	bls_ll_setAdvData((uint8_t *)advertising_data, sizeof(advertising_data));
 }
 
-void ble_send_temp(int16_t temp)
+_attribute_ram_code_ void ble_send_temp(int16_t temp)
 {
 	my_tempVal[0] = temp & 0xFF;
 	my_tempVal[1] = temp >> 8;
 	bls_att_pushNotifyData(TEMP_LEVEL_INPUT_DP_H, my_tempVal, 2);
 }
 
-void ble_send_battery(uint8_t value)
+_attribute_ram_code_ void ble_send_battery(uint8_t value)
 {
 	my_batVal[0] = value;
 	bls_att_pushNotifyData(BATT_LEVEL_INPUT_DP_H, (uint8_t *)my_batVal, 1);

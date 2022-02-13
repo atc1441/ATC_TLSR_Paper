@@ -78,7 +78,7 @@ _attribute_ram_code_ uint16_t get_adc_reading(ADC_InputPchTypeDef p_ain, ADC_Inp
 	return adc_reading_temp;
 }
 
-_attribute_ram_code_ uint16_t get_battery_mv()
+_attribute_ram_code_ uint16_t get_battery_mv(void)
 {
 	/*gpio_set_output_en(GPIO_PB7, 1);
 	gpio_set_input_en(GPIO_PB7, 0);
@@ -100,7 +100,7 @@ _attribute_ram_code_ uint8_t get_battery_level(uint16_t battery_mv)
 	return battery_level;
 }
 
-void adc_temp_init()
+_attribute_ram_code_ void adc_temp_init(void)
 {
 	adc_set_chn_enable_and_max_state_cnt(ADC_MISC_CHN, 2);
 	adc_set_state_length(240, 0, 10);  	//set R_max_mc,R_max_c,R_max_s
@@ -125,7 +125,7 @@ void adc_temp_init()
 
 }
 
-_attribute_ram_code_ uint16_t get_temperature_c()
+_attribute_ram_code_ uint16_t get_temperature_c(void)
 {
 	analog_write(0x07, analog_read(0x07) & (~BIT(4)));
     adc_init();

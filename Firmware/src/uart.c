@@ -6,7 +6,7 @@
 #include "uart.h"
 #include "main.h"
 
-void init_uart()
+void init_uart(void)
 {
 	gpio_set_func(TXD, AS_GPIO);
 	gpio_set_output_en(TXD, 1);

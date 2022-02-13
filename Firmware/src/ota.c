@@ -90,8 +90,8 @@ _attribute_ram_code_ int custom_otaWrite(void *p)
 		out_buffer[2] = crc_out;
 		bls_att_pushNotifyData(OTA_CMD_OUT_DP_H, out_buffer, 3);
 		break;
-	case 7:																								// when upload is done flash the firmware with this cmd, better do some CRC or checking before as it could brick the device
-		if (address = 0xC001CEED && out_buffer[5] == (crc_out >> 8) && out_buffer[6] == crc_out & 0xff) // Only flash if "magic word" is send
+	case 7:																									  // when upload is done flash the firmware with this cmd, better do some CRC or checking before as it could brick the device
+		if ((address == 0xC001CEED) && (out_buffer[5] == (crc_out >> 8)) && (out_buffer[6] == (crc_out & 0xff))) // Only flash if "magic word" is send
 			write_ota_firmware_to_flash();
 		break;
 	}
@@ -99,7 +99,7 @@ _attribute_ram_code_ int custom_otaWrite(void *p)
 	return 0;
 }
 
-_attribute_ram_code_ int write_ota_firmware_to_flash()
+_attribute_ram_code_ int write_ota_firmware_to_flash(void)
 {
 	irq_disable();
 	uint32_t address = 0;
