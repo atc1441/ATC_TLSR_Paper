@@ -382,11 +382,9 @@ _attribute_ram_code_ void epd_display(uint32_t time_is, uint16_t battery_mv, int
 
     char buff[25];
     sprintf(buff, "%02d:%02d", ((time_is / 60) / 60) % 24, (time_is / 60) % 60);
-    obdWriteStringCustom(&obd, (GFXfont *)&Special_Elite_Regular_30, 10, 45, (char *)buff, 1);
-    sprintf(buff, "Temperature %d C", temperature);
-    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 80, (char *)buff, 1);
-    sprintf(buff, "EPD Temperature %d C", EPD_read_temp());
-    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 100, (char *)buff, 1);
+    obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 50, 45, (char *)buff, 1);
+    sprintf(buff, "%d'C", EPD_read_temp());
+    obdWriteStringCustom(&obd, (GFXfont *)&Special_Elite_Regular_30, 10, 95, (char *)buff, 1);
     sprintf(buff, "Battery %dmV", battery_mv);
     obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 10, 120, (char *)buff, 1);
     FixBuffer(epd_temp, epd_buffer);
