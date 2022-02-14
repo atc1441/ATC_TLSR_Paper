@@ -53,7 +53,7 @@ _attribute_ram_code_ void main_loop(void)
         battery_mv = get_battery_mv();
         battery_level = get_battery_level(battery_mv);
         temperature = get_temperature_c();
-        set_adv_data(temperature, battery_level, battery_mv);
+        set_adv_data(EPD_read_temp()*10, battery_level, battery_mv);
         ble_send_battery(battery_level);
         ble_send_temp(EPD_read_temp()*10);
     }
