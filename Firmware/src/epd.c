@@ -21,7 +21,6 @@ RAM uint8_t epd_temperature_is_read = 0;
 RAM uint8_t epd_temperature = 0;
 
 uint8_t epd_buffer[epd_buffer_size];
-RAM uint8_t epd_buffer_old[epd_buffer_size];
 uint8_t epd_temp[epd_buffer_size]; // for OneBitDisplay to draw into
 OBDISP obd;                        // virtual display structure
 TIFFIMAGE tiff;
@@ -275,7 +274,7 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, int size, uint8_t fu
         int i;
         for (i = 0; i < size; i++)
         {
-            EPD_WriteData(epd_buffer_old[i]);
+            EPD_WriteData(~epd_buffer[i]);
         }
     }
     // load image data to EPD
@@ -283,7 +282,6 @@ _attribute_ram_code_ void EPD_Display(unsigned char *image, int size, uint8_t fu
 
     // trigger display refresh
     EPD_WriteCmd(0x12);
-    memcpy(epd_buffer_old, epd_buffer, size);
 
     epd_update_state = 1;
 }
