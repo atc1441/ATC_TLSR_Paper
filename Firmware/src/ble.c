@@ -47,7 +47,7 @@ RAM uint8_t advertising_data[] = {
 	/*BatM*/ 0xdd, 0xdd,
 	/*Counter*/ 0x00};
 
-uint8_t mac_public[6];
+RAM uint8_t mac_public[6];
 
 _attribute_ram_code_ void app_switch_to_indirect_adv(uint8_t e, uint8_t *p, int n)
 {

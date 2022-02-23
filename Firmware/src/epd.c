@@ -371,6 +371,7 @@ _attribute_ram_code_ void epd_display_tiff(uint8_t *pData, int iSize)
     EPD_Display(epd_buffer, epd_buffer_size, 1);
 } /* epd_display_tiff() */
 
+extern uint8_t mac_public[6];
 _attribute_ram_code_ void epd_display(uint32_t time_is, uint16_t battery_mv, int16_t temperature, uint8_t full_or_partial)
 {
     if (epd_update_state)
@@ -378,9 +379,11 @@ _attribute_ram_code_ void epd_display(uint32_t time_is, uint16_t battery_mv, int
     obdCreateVirtualDisplay(&obd, 250, 122, epd_temp);
     obdFill(&obd, 0, 0); // fill with white
 
-    char buff[25];
+    char buff[100];
+    sprintf(buff, "ESL_%02X%02X%02X", mac_public[2],mac_public[1],mac_public[0]);
+    obdWriteStringCustom(&obd, (GFXfont *)&Dialog_plain_16, 1, 17, (char *)buff, 1);
     sprintf(buff, "%02d:%02d", ((time_is / 60) / 60) % 24, (time_is / 60) % 60);
-    obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 50, 60, (char *)buff, 1);
+    obdWriteStringCustom(&obd, (GFXfont *)&DSEG14_Classic_Mini_Regular_40, 50, 65, (char *)buff, 1);
     sprintf(buff, "%d'C", EPD_read_temp());
     obdWriteStringCustom(&obd, (GFXfont *)&Special_Elite_Regular_30, 10, 95, (char *)buff, 1);
     sprintf(buff, "Battery %dmV", battery_mv);
