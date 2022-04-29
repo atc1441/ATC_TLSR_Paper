@@ -8,7 +8,10 @@ $(OUT_PATH)/i2c.o \
 $(OUT_PATH)/cmd_parser.o \
 $(OUT_PATH)/flash.o \
 $(OUT_PATH)/time.o \
+$(OUT_PATH)/epd_spi.o \
 $(OUT_PATH)/epd.o \
+$(OUT_PATH)/epd_bw.o \
+$(OUT_PATH)/epd_bwr.o \
 $(OUT_PATH)/ota.o \
 $(OUT_PATH)/led.o \
 $(OUT_PATH)/uart.o \
