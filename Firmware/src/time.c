@@ -6,6 +6,8 @@
 #include "time.h"
 #include "main.h"
 
+RAM uint16_t time_trime = 5000;// The higher the number the slower the time runs!, -32,768 to 32,767 
+RAM uint32_t one_second_trimmed = CLOCK_16M_SYS_TIMER_CLK_1S;
 RAM uint32_t current_unix_time;
 RAM uint32_t last_clock_increase;
 RAM uint32_t last_reached_period[10] = {0};
@@ -13,14 +15,15 @@ RAM uint8_t has_ever_reached[10] = {0};
 
 _attribute_ram_code_ void init_time(void)
 {
+    one_second_trimmed += time_trime;
     current_unix_time = 0;
 }
 
 _attribute_ram_code_ void handler_time(void)
 {
-    if (clock_time() - last_clock_increase >= CLOCK_16M_SYS_TIMER_CLK_1S)
+    if (clock_time() - last_clock_increase >= one_second_trimmed)
     {
-        last_clock_increase += CLOCK_16M_SYS_TIMER_CLK_1S;
+        last_clock_increase += one_second_trimmed;
         current_unix_time++;
     }
 }
