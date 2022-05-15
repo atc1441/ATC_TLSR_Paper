@@ -6,8 +6,6 @@
 #include "drivers.h"
 #include "stack/ble/ble.h"
 
-
-
 _attribute_ram_code_ void EPD_init(void)
 {
     gpio_set_func(EPD_RESET, AS_GPIO);
@@ -106,19 +104,25 @@ _attribute_ram_code_ void EPD_WriteData(unsigned char data)
 
 _attribute_ram_code_ void EPD_CheckStatus(int max_ms)
 {
-    // TODO implement timout to prevent endless blocking
+    unsigned long timeout_start = clock_time();
+    unsigned long timeout_ticks = max_ms * CLOCK_16M_SYS_TIMER_CLK_1MS;
     WaitMs(1);
     while (EPD_IS_BUSY())
     {
+        if (clock_time() - timeout_start >= timeout_ticks)
+            return; // Here we had a timeout
     }
 }
 
 _attribute_ram_code_ void EPD_CheckStatus_inverted(int max_ms)
 {
-    // TODO implement timout to prevent endless blocking
+    unsigned long timeout_start = clock_time();
+    unsigned long timeout_ticks = max_ms * CLOCK_16M_SYS_TIMER_CLK_1MS;
     WaitMs(1);
     while (!EPD_IS_BUSY())
     {
+        if (clock_time() - timeout_start >= timeout_ticks)
+            return; // Here we had a timeout
     }
 }
 

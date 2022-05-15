@@ -10,8 +10,10 @@ $(OUT_PATH)/flash.o \
 $(OUT_PATH)/time.o \
 $(OUT_PATH)/epd_spi.o \
 $(OUT_PATH)/epd.o \
-$(OUT_PATH)/epd_bw.o \
-$(OUT_PATH)/epd_bwr.o \
+$(OUT_PATH)/epd_bw_213.o \
+$(OUT_PATH)/epd_bwr_213.o \
+$(OUT_PATH)/epd_bw_213_ice.o \
+$(OUT_PATH)/epd_bwr_154.o \
 $(OUT_PATH)/ota.o \
 $(OUT_PATH)/led.o \
 $(OUT_PATH)/uart.o \

@@ -62,4 +62,7 @@ void cmd_parser(void * p){
 	}else if(inData == 0xDF){// Save current settings in flash
 		save_settings_to_flash();
 	}
+	else if(inData == 0xE0){// force set an EPD model, if it wasnt detect automatically correct
+		set_EPD_model(req->dat[1]);
+	}
 }

@@ -49,3 +49,16 @@ void SetPixel(int x, int y, uint8_t *pDisplayBuffer)
    *d &= ~(0x80 >> (y & 7)); // set pixel to black
 }
 ```
+
+
+The following hardware is currently supported,
+most displays are detected automatically if that fails you can select the correct one in the OTA flashing tool.
+The graphical layout is not edited for each screen size and will not fit nicely on all especially the 1.54" Version.
+
+## Compatible Hanshow models:
+Name                       |Name                       |  Case front               |  Case back
+:-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:
+Stellar-MFN@ | 2,13" 212x104 |  ![](/Compatible_models/Stellar-MFN%40_Front.jpg)|  ![](/Compatible_models/Stellar-MFN%40_Back.jpg)
+Stellar-M3N@ | 2,13" 250x122 | ![](/Compatible_models/Stellar-M3N%40_Front.jpg)|  ![](/Compatible_models/Stellar-M3N%40_Back.jpg)
+Stellar-MN@ | 2,13" 250x122 | ![](/Compatible_models/Stellar-MN%40_Front.jpg)|  ![](/Compatible_models/Stellar-MN%40_Back.jpg)
+Stellar-S3TN@ | 1,54" 200x200 | ![](/Compatible_models/Stellar-S3TN%40_Front.jpg)|  ![](/Compatible_models/Stellar-S3TN%40_Back.jpg)

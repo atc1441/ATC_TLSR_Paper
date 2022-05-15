@@ -15,7 +15,7 @@ extern uint8_t *epd_temp;
 		return 0;                    \
 	}
 
-unsigned char image[epd_buffer_size];
+extern unsigned char epd_buffer[epd_buffer_size];
 unsigned int byte_pos = 0;
 
 int epd_ble_handle_write(void *p)
@@ -31,13 +31,13 @@ int epd_ble_handle_write(void *p)
 	// Clear EPD display.
 	case 0x00:
 		ASSERT_MIN_LEN(payload_len, 2);
-		memset(image, payload[1], sizeof(image));
+		memset(epd_buffer, payload[1], sizeof(epd_buffer));
 		ble_set_connection_speed(40);
 		return 0;
 	// Push buffer to display.
 	case 0x01:
 		ble_set_connection_speed(200);
-		EPD_Display(image, epd_buffer_size, 1);
+		EPD_Display(epd_buffer, epd_buffer_size, 1);
 		return 0;
 	// Set byte_pos.
 	case 0x02:
@@ -46,15 +46,15 @@ int epd_ble_handle_write(void *p)
 		return 0;
 	// Write data to image buffer.
 	case 0x03:
-		if (byte_pos + payload_len - 1 >= sizeof(image) + 1)
+		if (byte_pos + payload_len - 1 >= sizeof(epd_buffer) + 1)
 		{
 			return 0;
 		}
-		memcpy(image + byte_pos, payload + 1, payload_len - 1);
+		memcpy(epd_buffer + byte_pos, payload + 1, payload_len - 1);
 		byte_pos += payload_len - 1;
 		return 0;
 	case 0x04: // decode & display a TIFF image
-		epd_display_tiff(image, byte_pos);
+		epd_display_tiff(epd_buffer, byte_pos);
 		return 0;
 	default:
 		return 0;

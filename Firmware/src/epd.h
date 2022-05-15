@@ -1,9 +1,10 @@
 #pragma once
 
-#define epd_height 128
-#define epd_width 250
+#define epd_height 200
+#define epd_width 200
 #define epd_buffer_size ((epd_height/8) * epd_width)
 
+void set_EPD_model(uint8_t model_nr);
 void init_epd(void);
 uint8_t EPD_read_temp(void);
 void EPD_Display(unsigned char *image, int size, uint8_t full_or_partial);

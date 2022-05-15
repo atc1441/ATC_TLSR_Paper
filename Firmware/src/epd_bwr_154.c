@@ -3,14 +3,14 @@
 #include "main.h"
 #include "epd.h"
 #include "epd_spi.h"
-#include "epd_bwr.h"
+#include "epd_bwr_154.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
 
 // SSD1675 mixed with SSD1680 EPD Controller
 
-#define BWR_Len 50
-uint8_t LUT_bwr_part[] = {
+#define BWR_154_Len 50
+uint8_t LUT_bwr_154_part[] = {
 
 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -18,7 +18,7 @@ uint8_t LUT_bwr_part[] = {
 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-BWR_Len, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+BWR_154_Len, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -35,8 +35,8 @@ BWR_Len, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
 };
 
-#define EPD_BWR_test_pattern 0xA5
-_attribute_ram_code_ uint8_t EPD_BWR_detect(void)
+#define EPD_BWR_154_test_pattern 0xA5
+_attribute_ram_code_ uint8_t EPD_BWR_154_detect(void)
 {
     // SW Reset
     EPD_WriteCmd(0x12);
@@ -44,20 +44,20 @@ _attribute_ram_code_ uint8_t EPD_BWR_detect(void)
 
     EPD_WriteCmd(0x32);
     int i;
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 65; i++)// This controller has a <100 bytes LUT storage so we test if thats existing.
     {
-        EPD_WriteData(EPD_BWR_test_pattern);
+        EPD_WriteData(EPD_BWR_154_test_pattern);
     }
     EPD_WriteCmd(0x33);
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 65; i++)
     {
-        if(EPD_SPI_read() != EPD_BWR_test_pattern)
+        if(EPD_SPI_read() != EPD_BWR_154_test_pattern)
             return 0;
     }
     return 1;
 }
 
-_attribute_ram_code_ uint8_t EPD_BWR_read_temp(void)
+_attribute_ram_code_ uint8_t EPD_BWR_154_read_temp(void)
 {
     uint8_t epd_temperature = 0 ;
     
@@ -66,21 +66,6 @@ _attribute_ram_code_ uint8_t EPD_BWR_read_temp(void)
 
     EPD_CheckStatus_inverted(100);
 
-    // Set Analog Block control
-    EPD_WriteCmd(0x74);
-    EPD_WriteData(0x54);
-    // Set Digital Block control
-    EPD_WriteCmd(0x7E);
-    EPD_WriteData(0x3B);
-
-    // Booster soft start
-    EPD_WriteCmd(0x0C);
-    EPD_WriteData(0x8B);
-    EPD_WriteData(0x9C);
-    EPD_WriteData(0x96);
-    EPD_WriteData(0x0F);
-
-    // Driver output control
     EPD_WriteCmd(0x01);
     EPD_WriteData(0x28);
     EPD_WriteData(0x01);
@@ -93,23 +78,18 @@ _attribute_ram_code_ uint8_t EPD_BWR_read_temp(void)
     // Set RAM X- Address Start/End
     EPD_WriteCmd(0x44);
     EPD_WriteData(0x00);
-    EPD_WriteData(0x0F);
+    EPD_WriteData(0x18);
 
     // Set RAM Y- Address Start/End
     EPD_WriteCmd(0x45);
     EPD_WriteData(0x28);
     EPD_WriteData(0x01);
-    EPD_WriteData(0x2E);
+    EPD_WriteData(0x61);
     EPD_WriteData(0x00);
 
     // Border waveform control
     EPD_WriteCmd(0x3C);
     EPD_WriteData(0x05);
-
-    // Display update control
-    EPD_WriteCmd(0x21);
-    EPD_WriteData(0x00);
-    EPD_WriteData(0x80);
 
     // Temperature sensor control
     EPD_WriteCmd(0x18);
@@ -138,8 +118,8 @@ _attribute_ram_code_ uint8_t EPD_BWR_read_temp(void)
     return epd_temperature;
 }
 
-_attribute_ram_code_ uint8_t EPD_BWR_Display(unsigned char *image, int size, uint8_t full_or_partial)
-{    
+_attribute_ram_code_ uint8_t EPD_BWR_154_Display(unsigned char *image, int size, uint8_t full_or_partial)
+{
     uint8_t epd_temperature = 0 ;
     
     // SW Reset
@@ -147,24 +127,10 @@ _attribute_ram_code_ uint8_t EPD_BWR_Display(unsigned char *image, int size, uin
 
     EPD_CheckStatus_inverted(100);
 
-    // Set Analog Block control
-    EPD_WriteCmd(0x74);
-    EPD_WriteData(0x54);
-    // Set Digital Block control
-    EPD_WriteCmd(0x7E);
-    EPD_WriteData(0x3B);
-
-    // Booster soft start
-    EPD_WriteCmd(0x0C);
-    EPD_WriteData(0x8B);
-    EPD_WriteData(0x9C);
-    EPD_WriteData(0x96);
-    EPD_WriteData(0x0F);
-
     // Driver output control
     EPD_WriteCmd(0x01);
-    EPD_WriteData(0x28);
-    EPD_WriteData(0x01);
+    EPD_WriteData(0xc7);
+    EPD_WriteData(0x00);
     EPD_WriteData(0x01);
 
     // Data entry mode setting
@@ -174,23 +140,18 @@ _attribute_ram_code_ uint8_t EPD_BWR_Display(unsigned char *image, int size, uin
     // Set RAM X- Address Start/End
     EPD_WriteCmd(0x44);
     EPD_WriteData(0x00);
-    EPD_WriteData(0x0F);
+    EPD_WriteData(0x18);
 
     // Set RAM Y- Address Start/End
     EPD_WriteCmd(0x45);
-    EPD_WriteData(0x28);
-    EPD_WriteData(0x01);
-    EPD_WriteData(0x2E);
+    EPD_WriteData(0xc7);
+    EPD_WriteData(0x00);
+    EPD_WriteData(0x00);
     EPD_WriteData(0x00);
 
     // Border waveform control
     EPD_WriteCmd(0x3C);
     EPD_WriteData(0x05);
-
-    // Display update control
-    EPD_WriteCmd(0x21);
-    EPD_WriteData(0x00);
-    EPD_WriteData(0x80);
 
     // Temperature sensor control
     EPD_WriteCmd(0x18);
@@ -218,8 +179,8 @@ _attribute_ram_code_ uint8_t EPD_BWR_Display(unsigned char *image, int size, uin
 
     // Set RAM Y address
     EPD_WriteCmd(0x4F);
-    EPD_WriteData(0x28);
-    EPD_WriteData(0x01);
+    EPD_WriteData(0xc7);
+    EPD_WriteData(0x00);
 
     EPD_LoadImage(image, size, 0x24);
 
@@ -229,8 +190,8 @@ _attribute_ram_code_ uint8_t EPD_BWR_Display(unsigned char *image, int size, uin
 
     // Set RAM Y address
     EPD_WriteCmd(0x4F);
-    EPD_WriteData(0x28);
-    EPD_WriteData(0x01);
+    EPD_WriteData(0xc7);
+    EPD_WriteData(0x00);
 
     EPD_WriteCmd(0x26);// RED Color TODO make something out of it :)
     int i;
@@ -242,9 +203,9 @@ _attribute_ram_code_ uint8_t EPD_BWR_Display(unsigned char *image, int size, uin
     if (!full_or_partial)
     {
         EPD_WriteCmd(0x32);
-        for (i = 0; i < sizeof(LUT_bwr_part); i++)
+        for (i = 0; i < sizeof(LUT_bwr_154_part); i++)
         {
-            EPD_WriteData(LUT_bwr_part[i]);
+            EPD_WriteData(LUT_bwr_154_part[i]);
         }
     }
     
@@ -258,7 +219,7 @@ _attribute_ram_code_ uint8_t EPD_BWR_Display(unsigned char *image, int size, uin
     return epd_temperature;
 }
 
-_attribute_ram_code_ void EPD_BWR_set_sleep(void)
+_attribute_ram_code_ void EPD_BWR_154_set_sleep(void)
 {
     // deep sleep
     EPD_WriteCmd(0x10);
