@@ -3,7 +3,7 @@
 #include "main.h"
 #include "epd.h"
 #include "epd_spi.h"
-#include "epd_BW_213_ice.h"
+#include "epd_bw_213_ice.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
 
