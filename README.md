@@ -56,7 +56,7 @@ most displays are detected automatically if that fails you can select the correc
 The graphical layout is not edited for each screen size and will not fit nicely on all especially the 1.54" Version.
 
 ## Compatible Hanshow models:
-Name                       |Name                       |  Case front               |  Case back
+Name                       |Display                       |  Case front               |  Case back
 :-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:
 Stellar-MFN@ E31A | 2,13" 212x104 |  ![](/Compatible_models/Stellar-MFN%40_Front.jpg)|  ![](/Compatible_models/Stellar-MFN%40_Back.jpg)
 Stellar-M3N@ E31HA | 2,13" 250x122 | ![](/Compatible_models/Stellar-M3N%40_Front.jpg)|  ![](/Compatible_models/Stellar-M3N%40_Back.jpg)
