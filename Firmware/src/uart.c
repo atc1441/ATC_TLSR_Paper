@@ -24,15 +24,21 @@ void init_uart(void)
 	uart_ndma_irq_triglevel(0, 0);
 }
 
-_attribute_ram_code_ void puts(const char* str) 
+_attribute_ram_code_ void puts(const char *str)
 {
 	while (*str != '\0')
 	{
-		uart_ndma_send_byte(*str);
-		while (uart_tx_is_busy())
-		{
-			sleep_us(10);
-		};
+		putchar_custom((char)*str);
 		str++;
 	}
+}
+
+int putchar_custom(int c)
+{
+	uart_ndma_send_byte((char)c);
+	while (uart_tx_is_busy())
+	{
+		sleep_us(10);
+	};
+	return 0;
 }
