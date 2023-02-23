@@ -52,14 +52,12 @@
 
 #include "drivers.h"
 extern int putchar(int c);
-extern int putchar_custom(int c);
 static void printchar(char **str, int c) {
 	if (str) {
 		**str = c;
 		++(*str);
 	} else
 		(void) putchar(c);
-		(void) putchar_custom(c);
 }
 
 #define PAD_RIGHT 1

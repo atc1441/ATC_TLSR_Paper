@@ -79,8 +79,8 @@ _attribute_ram_code_ void main_loop(void)
         if (ble_get_connected())
             set_led_color(3);
         else
-            set_led_color(2);
-        WaitMs(1);
+        //    set_led_color(2);
+        //WaitMs(1);
         set_led_color(0);
     }
 
