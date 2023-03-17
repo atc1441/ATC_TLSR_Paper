@@ -1,7 +1,7 @@
 # ATC_TLSR_Paper
 Custom BLE firmware for Hanshow E-Paper Shelf Labels / Price Tags using the TLSR8359 ARM SOC
 
-<h1 style="color:red;font-size:25px;">Please notice that this firmware ONLY works on Price Tags with the TLSR Microcontroller!</h1>
+<h1 style="color:red;font-size:25px;">Please note that this firmware ONLY works on Price Tags with the TLSR Microcontroller! Make sure to check the <a href="#compatible-hanshow-models">list of compatible models</a>.</h1>
 
 
 ### You can support my work via PayPal: https://paypal.me/hoverboard1 this keeps projects like this coming.
@@ -59,6 +59,21 @@ most displays are detected automatically if that fails you can select the correc
 The graphical layout is not edited for each screen size and will not fit nicely on all especially the 1.54" Version.
 
 ## Compatible Hanshow models:
+Hanshow [explains](https://fcc.report/FCC-ID/2AHB5-M3NT/4535921.pdf) their naming scheme as follows:
+> Stellar-XXX E31X  
+> XXX and X stand for hardware, such as Stellar-M3YN@ E31H
+> - M = 2.13 inch
+> - 3 = three-color display: black/white/red
+> - Y = three-color display: black/white/yellow
+> - N = NFC chip
+> - H = High-resolution
+> - A = No reed switch
+> - @ = LED light
+
+This firmware requires hardware based on the TLSR8359 chip, which is usually the case for Stellar-xxNx models, but **not** models without an N.
+
+The following models have been confirmed to work:
+
 Name                       |Display                       |  Case front               |  Case back
 :-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:
 Stellar-MFN@ E31A | 2,13" 212x104 |  ![](/Compatible_models/Stellar-MFN%40_Front.jpg)|  ![](/Compatible_models/Stellar-MFN%40_Back.jpg)
