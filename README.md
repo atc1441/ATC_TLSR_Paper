@@ -1,7 +1,7 @@
 # ATC_TLSR_Paper
 Custom BLE firmware for Hanshow E-Paper Shelf Labels / Price Tags using the TLSR8359 ARM SOC
 
-<h1 style="color:red;font-size:25px;">Please notice that this firmware ONLY works on Price Tags with the TLSR Microcontroller!</h1>
+<h1 style="color:red;font-size:25px;">Please note that this firmware ONLY works on Price Tags with the TLSR Microcontroller! Make sure to check the <a href="#compatible-hanshow-models">list of compatible models</a>.</h1>
 
 
 ### You can support my work via PayPal: https://paypal.me/hoverboard1 this keeps projects like this coming.
