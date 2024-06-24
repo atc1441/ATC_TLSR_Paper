@@ -23,17 +23,19 @@ WebBluetooth Firmware OTA Flashing:
 https://atc1441.github.io/ATC_TLSR_Paper_OTA_writing.html
 
 #### Compiling:
-Python needs to be installed
-##### Windows:
-To compile under windows navigate with a command prompt to the "Firmware" folder
+Docker needs to be installed
 
-Enter "makeit.exe" and wait till the Compiling is done.
+Build docker container with
+```
+docker build -t tlsr8359 .   
+```
 
+Once built, you can build the firmware by using
+```
+docker run -it --rm -v "${PWD}/Firmware":/app tlsr8359
+```
 
-##### Linux:
-Navigate with a Terminal into the "Firmware" Folder
-
-Enter "make" and wait till the Compiling is done.
+Once inside the container, just build using make
 
 #### Flashing:
 Open the Compiled .bin firmware with the WebSerial Flasher and write it to Flash.

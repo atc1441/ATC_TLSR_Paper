@@ -1,15 +1,5 @@
 TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258
 
-ifeq ($(OS), Windows_NT)
-	TC32_COMPILER_PATH := "tc32_windows\\bin\\"
-	WINDOWS_PREFIX :=$(TC32_COMPILER_PATH)
-	LINUX_CHMOD := 
-else
-	TC32_COMPILER_PATH := ./tc32_linux/bin/
-	WINDOWS_PREFIX :=
-	LINUX_CHMOD := chmod 777 -R ./tc32_linux/
-endif
-
 LIBS :=  -llt_8258
 
 TEL_PATH := ./
@@ -87,26 +77,26 @@ main-build: $(ELF_FILE) secondary-outputs
 # Tool invocations
 $(ELF_FILE): $(OBJS) $(USER_OBJS)
 	@echo 'Building Standard target: $@'
-	@$(TC32_COMPILER_PATH)tc32-elf-ld --gc-sections -L $(TEL_PATH)/components/proj_lib -T $(LS_FLAGS) -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
+	@tc32-elf-ld --gc-sections -L $(TEL_PATH)/components/proj_lib -T $(LS_FLAGS) -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 $(LST_FILE): $(ELF_FILE)
 	@echo 'Invoking: TC32 Create Extended Listing'
-	@$(TC32_COMPILER_PATH)tc32-elf-objdump -x -D -l -S  $(ELF_FILE)  > $(LST_FILE)
+	@tc32-elf-objdump -x -D -l -S  $(ELF_FILE)  > $(LST_FILE)
 	@echo 'Finished building: $@'
 	@echo ' '
 
 $(BIN_FILE): $(ELF_FILE)
 	@echo 'Create Flash image (binary format)'
-	@$(TC32_COMPILER_PATH)tc32-elf-objcopy -v -O binary $(ELF_FILE)  $(BIN_FILE)
+	@tc32-elf-objcopy -v -O binary $(ELF_FILE)  $(BIN_FILE)
 	@python3 $(TEL_PATH)/make/tl_firmware_tools.py add_crc $(BIN_FILE)
 	@echo 'Finished building: $@'
 	@echo ' '
 
 sizedummy: $(ELF_FILE)
 	@echo 'Invoking: Print Size'
-	$(TC32_COMPILER_PATH)tc32-elf-size -t $(ELF_FILE)
+	tc32-elf-size -t $(ELF_FILE)
 	@echo 'Finished building: $@'
 	@echo ' '
 

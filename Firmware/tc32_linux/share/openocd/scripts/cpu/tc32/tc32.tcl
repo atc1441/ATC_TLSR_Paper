@@ -1,6 +1,0 @@
-set CPU_TYPE   tc32
-set CPU_NAME   tc32
-set CPU_ARCH   tc32
-set CPU_MAX_ADDRESS 0xFFFFFFFF
-set CPU_NBITS  32
-
