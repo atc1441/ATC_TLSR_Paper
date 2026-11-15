@@ -4,8 +4,6 @@ Custom BLE firmware for Hanshow E-Paper Shelf Labels / Price Tags using the TLSR
 <h1 style="color:red;font-size:25px;">Please note that this firmware ONLY works on Price Tags with the TLSR Microcontroller! Make sure to check the <a href="#compatible-hanshow-models">list of compatible models</a>.</h1>
 
 
-### You can support my work via PayPal: https://paypal.me/hoverboard1 this keeps projects like this coming.
-
 As BLE can be enabled on the Telink TLSR8359 so i decided to make a custom firmware instead of reversing the stock firmware and its 2.4Ghz RF Protocol
 
 This repo is made together with this explanation video:(click on it)
